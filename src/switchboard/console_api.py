@@ -166,7 +166,15 @@ def build_console(runtime) -> FastAPI:
                 "decision": "allow",
                 "error_code": None,
                 "duration_ms": 0,
-                "arguments": {"mode": body.mode, "provider": body.provider, "message": body.message},
+                "arguments": {
+                    "mode": body.mode,
+                    "message": body.message,
+                    **(
+                        {"planner": "scripted demo planner"}
+                        if body.mode == "demo"
+                        else {"provider": body.provider}
+                    ),
+                },
                 "result_summary": result["kind"],
             }
         )
