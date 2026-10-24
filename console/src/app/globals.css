@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --paper: #f3efe6;
+  --ink: #1e1a16;
+  --muted: #4a443c;
+  --rule: #d4ccc0;
+  --accent: #8c3a2a;
+  --field: #faf7f1;
+  --font-sans: var(--font-public);
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-plex);
+}
+
+.dark {
+  --paper: #141210;
+  --ink: #f3ecdf;
+  --muted: #cfc4b4;
+  --rule: #3a342c;
+  --accent: #e7a090;
+  --field: #1c1916;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-field: var(--field);
+  --font-sans: var(--font-public);
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-plex);
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-public), "Public Sans", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+
+input,
+textarea,
+select {
+  caret-color: var(--accent);
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.grid > * {
+  min-width: 0;
+}
+
+pre {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

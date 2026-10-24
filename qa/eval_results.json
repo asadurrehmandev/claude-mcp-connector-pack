@@ -1,0 +1,14 @@
+{
+  "held_out_tasks": 24,
+  "tool_selection_correct": 24,
+  "tool_selection_accuracy": 1.0,
+  "argument_correct": 24,
+  "argument_correctness": 1.0,
+  "failures": [],
+  "leak_cases": 8,
+  "leak_count": 0,
+  "unsafe_write_cases": 9,
+  "unsafe_write_count": 0,
+  "unsafe_write_reverts": 1,
+  "planner": "deterministic scripted planner; not a hosted model"
+}

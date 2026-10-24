@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4317:4317"
+    environment:
+      SWITCHBOARD_ENV: demo
+      SWITCHBOARD_HOST: 0.0.0.0
+      SWITCHBOARD_PORT: "4317"
+      SWITCHBOARD_PUBLIC_BASE_URL: http://127.0.0.1:4317
+      SWITCHBOARD_AUDIT_PATH: /app/var/audit.jsonl
+      SWITCHBOARD_POLICY_PATH: /app/var/policy.json
+    volumes:
+      - switchboard-var:/app/var
+  console:
+    build:
+      context: ./console
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: http://127.0.0.1:4317/console
+    ports:
+      - "4318:4318"
+    depends_on:
+      - api
+
+volumes:
+  switchboard-var:
