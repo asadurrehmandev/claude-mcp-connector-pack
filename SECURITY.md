@@ -72,7 +72,7 @@ Rate limiting is a sliding window per tenant and tool. The default is 60 calls p
 - Refresh tokens and the generated RSA key do not survive a process restart. There is one JWKS key, not a rotation set.
 - There is no user login. Demo OAuth auto-approves the pre-registered client.
 - The sealed eval grades the scripted planner, not Claude or another hosted model. A model can still be persuaded by text inside `data`. The server's job is to keep that text out of the control channel and to refuse the write unless `confirm` is true.
-- Live vendor clients are real HTTP code. They were tested with a mock transport, not with production agency accounts. Those accounts do not exist; Northline, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry are fictional records written for this project.
+- Live vendor clients are real HTTP code. They were tested with a mock transport, not with production agency accounts. Those accounts do not exist; Fernwood Studio, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry are fictional records written for this project.
 - Anomaly thresholds are fixed. They are not a client's media goal.
 - ClickUp's live update path changes name and status. Reassignment is guaranteed on create, where the member id is sent.
 - Policy and audit files under `var/` are local JSON, not a tamper-evident log pipeline.

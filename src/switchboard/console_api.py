@@ -63,7 +63,7 @@ def build_console(runtime) -> FastAPI:
             "service": "switchboard",
             "env": runtime.settings.env,
             "demo": runtime.settings.demo,
-            "agency": "Northline",
+            "agency": "Fernwood Studio",
             "agency_city": "Chicago",
             "demo_today": "2026-03-16",
             "mode_label": _mode_label(runtime),
@@ -81,7 +81,7 @@ def build_console(runtime) -> FastAPI:
             if runtime.settings.demo:
                 row["demo_bearer"] = issue_token(
                     runtime.settings,
-                    subject="elena.voss@northline.studio",
+                    subject="elena.voss@fernwood.studio",
                     tenant_id=item.id,
                     scopes=list(ALL_SCOPES),
                     client_id=runtime.settings.oauth_client_id,
@@ -213,7 +213,7 @@ def setup_snippets(runtime) -> dict[str, str]:
             "curl -s -X POST "
             f"{base}/oauth/token "
             "-d grant_type=client_credentials "
-            "-d client_id=northline-console "
+            "-d client_id=fernwood-console "
             "-d client_secret=demo-console-secret "
             "-d tenant_id=halden-bikes"
         ),
@@ -239,7 +239,7 @@ def _principal(runtime, request: Request, workspace_id: str) -> Principal:
         return Principal(
             tenant_id=workspace_id,
             scopes=frozenset(ALL_SCOPES),
-            subject="elena.voss@northline.studio",
+            subject="elena.voss@fernwood.studio",
             client_id="console",
         )
     raise SwitchboardError("unauthenticated", "Live mode requires a bearer token.")
@@ -253,7 +253,7 @@ def _known_workspace(runtime, workspace_id: str) -> None:
 def _mode_label(runtime) -> str:
     if runtime.settings.demo:
         return (
-            "Switchboard demo. Northline is a fictional agency written for this project, "
+            "Switchboard demo. Fernwood Studio is a fictional agency written for this project, "
             "with three clients. No live vendor calls."
         )
     return "Live credentials are configured for at least one connector where the environment says so."

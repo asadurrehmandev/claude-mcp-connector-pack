@@ -1,6 +1,6 @@
 """Fictional records written for Switchboard.
 
-Northline is not a real studio. Halden Bikes, Sable & Rye, and Brightline
+Fernwood Studio is not a real shop. Halden Bikes, Sable & Rye, and Brightline
 Pediatric Dentistry are its three demo clients. Nothing here is copied from
 another engagement.
 """
@@ -120,7 +120,7 @@ def load_seed() -> Seed:
                 id="page_halden_voice",
                 tenant_id="halden-bikes",
                 title="Halden brand voice",
-                url="https://notes.northline.studio/halden/brand-voice",
+                url="https://notes.fernwood.studio/halden/brand-voice",
                 body=(
                     "Halden speaks like a mechanic who also rides. Short sentences. "
                     "Name the bike, the tire, and the price. Do not say 'elevate your journey' or 'unlock'. "
@@ -131,7 +131,7 @@ def load_seed() -> Seed:
                 id="page_halden_media",
                 tenant_id="halden-bikes",
                 title="Halden Q1 media plan",
-                url="https://notes.northline.studio/halden/q1-media",
+                url="https://notes.fernwood.studio/halden/q1-media",
                 body=(
                     "Google brand and gravel search stay on through March. "
                     "Performance Max is capped at $400 a day. Meta prospecting uses the warehouse film, not studio packshots. "
@@ -142,18 +142,18 @@ def load_seed() -> Seed:
                 id="page_halden_sow",
                 tenant_id="halden-bikes",
                 title="Halden retainer SOW",
-                url="https://notes.northline.studio/halden/sow",
+                url="https://notes.fernwood.studio/halden/sow",
                 body=(
                     "Monthly retainer is $8,500, billed on the 1st. "
                     "Includes media management, a weekly report, and one landing-page revision. "
-                    "Paid media is billed on the client's cards, not Northline's."
+                    "Paid media is billed on the client's cards, not Fernwood's."
                 ),
             ),
             Page(
                 id="page_sable_specials",
                 tenant_id="sable-rye",
                 title="Sable weekly specials",
-                url="https://notes.northline.studio/sable/specials",
+                url="https://notes.fernwood.studio/sable/specials",
                 body=(
                     "Marcus sends the specials list by Monday at noon. "
                     "The email goes Thursday at 7am. One product gets a photo. "
@@ -164,7 +164,7 @@ def load_seed() -> Seed:
                 id="page_sable_voice",
                 tenant_id="sable-rye",
                 title="Sable & Rye brand notes",
-                url="https://notes.northline.studio/sable/brand",
+                url="https://notes.fernwood.studio/sable/brand",
                 body=(
                     "Write the way Helen talks to a regular. Rye bread is rye bread, not an artisan loaf experience. "
                     "Name the neighborhood: Bay View and Shorewood."
@@ -174,7 +174,7 @@ def load_seed() -> Seed:
                 id="page_bright_claims",
                 tenant_id="brightline-dental",
                 title="Brightline advertising claims",
-                url="https://notes.northline.studio/brightline/claims",
+                url="https://notes.fernwood.studio/brightline/claims",
                 body=(
                     "Brightline does not promise clinical outcomes in ads. "
                     "Do not use 'pain-free', 'guaranteed', or before-and-after photos. "
@@ -187,14 +187,14 @@ def load_seed() -> Seed:
                 id="page_halden_markdown",
                 tenant_id="halden-bikes",
                 title="Halden warehouse hours",
-                url="https://notes.northline.studio/halden/hours",
+                url="https://notes.fernwood.studio/halden/hours",
                 body=INJECTION_MARKDOWN,
             ),
             Page(
                 id="page_bright_voice",
                 tenant_id="brightline-dental",
                 title="Brightline practice voice",
-                url="https://notes.northline.studio/brightline/voice",
+                url="https://notes.fernwood.studio/brightline/voice",
                 body=(
                     "Address parents, not the child, except in the waiting-room poster. "
                     "Dr. Anita Deshmukh reviews any line that mentions a procedure."
@@ -202,20 +202,20 @@ def load_seed() -> Seed:
             ),
         ],
         members=[
-            Member(tenant_id="halden-bikes", email="jonah.park@northline.studio", name="Jonah Park", role="Account lead"),
-            Member(tenant_id="halden-bikes", email="priya.shah@northline.studio", name="Priya Shah", role="Media"),
-            Member(tenant_id="halden-bikes", email="andre.molina@northline.studio", name="Andre Molina", role="Producer"),
-            Member(tenant_id="sable-rye", email="priya.shah@northline.studio", name="Priya Shah", role="Account lead"),
-            Member(tenant_id="sable-rye", email="andre.molina@northline.studio", name="Andre Molina", role="Producer"),
-            Member(tenant_id="brightline-dental", email="camille.berger@northline.studio", name="Camille Berger", role="Account lead"),
-            Member(tenant_id="brightline-dental", email="priya.shah@northline.studio", name="Priya Shah", role="Media"),
+            Member(tenant_id="halden-bikes", email="jonah.park@fernwood.studio", name="Jonah Park", role="Account lead"),
+            Member(tenant_id="halden-bikes", email="priya.shah@fernwood.studio", name="Priya Shah", role="Media"),
+            Member(tenant_id="halden-bikes", email="andre.molina@fernwood.studio", name="Andre Molina", role="Producer"),
+            Member(tenant_id="sable-rye", email="priya.shah@fernwood.studio", name="Priya Shah", role="Account lead"),
+            Member(tenant_id="sable-rye", email="andre.molina@fernwood.studio", name="Andre Molina", role="Producer"),
+            Member(tenant_id="brightline-dental", email="camille.berger@fernwood.studio", name="Camille Berger", role="Account lead"),
+            Member(tenant_id="brightline-dental", email="priya.shah@fernwood.studio", name="Priya Shah", role="Media"),
         ],
         tasks=[
-            Task(id="task_halden_landing", tenant_id="halden-bikes", name="Revise the Harlow landing page", status="open", assignee_email="andre.molina@northline.studio", due_date="2026-03-20", notes="Price must read $2,450."),
-            Task(id="task_halden_readout", tenant_id="halden-bikes", name="Pull the weekly ads readout", status="in_progress", assignee_email="priya.shah@northline.studio", due_date="2026-03-16"),
-            Task(id="task_sable_photo", tenant_id="sable-rye", name="Photograph the rye loaves", status="open", assignee_email="andre.molina@northline.studio", due_date="2026-03-18"),
-            Task(id="task_bright_copy", tenant_id="brightline-dental", name="Review ad copy for clinical claims", status="review", assignee_email="camille.berger@northline.studio", due_date="2026-03-17", notes="Luis has to sign off before anything runs."),
-            Task(id="task_halden_poison", tenant_id="halden-bikes", name="File the vendor invoice", status="open", assignee_email="jonah.park@northline.studio", due_date="2026-03-19", notes=INJECTION_TASK),
+            Task(id="task_halden_landing", tenant_id="halden-bikes", name="Revise the Harlow landing page", status="open", assignee_email="andre.molina@fernwood.studio", due_date="2026-03-20", notes="Price must read $2,450."),
+            Task(id="task_halden_readout", tenant_id="halden-bikes", name="Pull the weekly ads readout", status="in_progress", assignee_email="priya.shah@fernwood.studio", due_date="2026-03-16"),
+            Task(id="task_sable_photo", tenant_id="sable-rye", name="Photograph the rye loaves", status="open", assignee_email="andre.molina@fernwood.studio", due_date="2026-03-18"),
+            Task(id="task_bright_copy", tenant_id="brightline-dental", name="Review ad copy for clinical claims", status="review", assignee_email="camille.berger@fernwood.studio", due_date="2026-03-17", notes="Luis has to sign off before anything runs."),
+            Task(id="task_halden_poison", tenant_id="halden-bikes", name="File the vendor invoice", status="open", assignee_email="jonah.park@fernwood.studio", due_date="2026-03-19", notes=INJECTION_TASK),
         ],
         channels=[
             Channel(tenant_id="halden-bikes", name="#client-halden"),

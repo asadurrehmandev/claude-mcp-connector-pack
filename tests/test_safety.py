@@ -31,10 +31,10 @@ def test_redact_secrets_and_pii():
 def test_token_roundtrip_and_rejection(runtime):
     token = issue_token(
         runtime.settings,
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         tenant_id="halden-bikes",
         scopes=["crm.read"],
-        client_id="northline-console",
+        client_id="fernwood-console",
         ttl_seconds=60,
     )
     claims = decode_token(token, runtime.settings)
@@ -46,7 +46,7 @@ def test_token_roundtrip_and_rejection(runtime):
         subject="elena",
         tenant_id="halden-bikes",
         scopes=["crm.read"],
-        client_id="northline-console",
+        client_id="fernwood-console",
         ttl_seconds=-10,
     )
     assert decode_token(expired, runtime.settings) is None

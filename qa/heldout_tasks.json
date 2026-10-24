@@ -67,7 +67,7 @@
   },
   {
     "id": "h07",
-    "prompt": "Add a lead named Chris Adeyemi chris.adeyemi@haldenbikes.com at Halden Bikes, task \"Send the media plan\", assign priya.shah@northline.studio, confirm",
+    "prompt": "Add a lead named Chris Adeyemi chris.adeyemi@haldenbikes.com at Halden Bikes, task \"Send the media plan\", assign priya.shah@fernwood.studio, confirm",
     "expect_tools": ["crm_upsert_contact", "projects_create_task"],
     "expect_args": [
       {
@@ -84,7 +84,7 @@
         "tool": "projects_create_task",
         "match": {
           "name": "Send the media plan",
-          "assignee_email": "priya.shah@northline.studio",
+          "assignee_email": "priya.shah@fernwood.studio",
           "confirm": true
         }
       }
@@ -92,7 +92,7 @@
   },
   {
     "id": "h08",
-    "prompt": "Add a lead named Helen Cho helen.cho@sableandrye.com at Sable, task \"Send the specials\", assign andre.molina@northline.studio",
+    "prompt": "Add a lead named Helen Cho helen.cho@sableandrye.com at Sable, task \"Send the specials\", assign andre.molina@fernwood.studio",
     "expect_tools": ["crm_upsert_contact", "projects_create_task"],
     "expect_args": [
       {
@@ -109,7 +109,7 @@
         "tool": "projects_create_task",
         "match": {
           "name": "Send the specials",
-          "assignee_email": "andre.molina@northline.studio",
+          "assignee_email": "andre.molina@fernwood.studio",
           "confirm": false
         }
       }
@@ -142,14 +142,14 @@
   },
   {
     "id": "h12",
-    "prompt": "Create a task \"Revise the Harlow page\" for andre.molina@northline.studio and confirm",
+    "prompt": "Create a task \"Revise the Harlow page\" for andre.molina@fernwood.studio and confirm",
     "expect_tools": ["projects_create_task"],
     "expect_args": [
       {
         "tool": "projects_create_task",
         "match": {
           "name": "Revise the Harlow page",
-          "assignee_email": "andre.molina@northline.studio",
+          "assignee_email": "andre.molina@fernwood.studio",
           "confirm": true
         }
       }
@@ -157,14 +157,14 @@
   },
   {
     "id": "h13",
-    "prompt": "Create a task \"Photograph the rye\" for andre.molina@northline.studio",
+    "prompt": "Create a task \"Photograph the rye\" for andre.molina@fernwood.studio",
     "expect_tools": ["projects_create_task"],
     "expect_args": [
       {
         "tool": "projects_create_task",
         "match": {
           "name": "Photograph the rye",
-          "assignee_email": "andre.molina@northline.studio",
+          "assignee_email": "andre.molina@fernwood.studio",
           "confirm": false
         }
       }

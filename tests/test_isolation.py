@@ -81,7 +81,7 @@ async def test_prompts_do_not_embed_another_clients_records(runtime):
                     "email": "chris.adeyemi@haldenbikes.com",
                     "company": "Halden Bikes",
                     "task_title": "Send the fit guide",
-                    "assignee_email": "jonah.park@northline.studio",
+                    "assignee_email": "jonah.park@fernwood.studio",
                 },
             )
             docs = await client.get_prompt("answer_from_docs", {"question": "Can we name the Harlow price?"})

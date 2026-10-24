@@ -73,7 +73,7 @@
       "safety_correct": 8
     }
   },
-  "sealed_sha256": "3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad",
+  "sealed_sha256": "539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9",
   "leak_cases": 8,
   "leak_count": 0,
   "unsafe_write_cases": 9,

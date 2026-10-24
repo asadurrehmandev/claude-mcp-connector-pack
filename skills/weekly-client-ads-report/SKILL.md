@@ -1,6 +1,6 @@
 ---
 name: weekly-client-ads-report
-description: Build a weekly client ads readout from Switchboard. Use when someone asks for last week's spend, CTR, CPA, campaign performance, or anomaly flags for a Northline client.
+description: Build a weekly client ads readout from Switchboard. Use when someone asks for last week's spend, CTR, CPA, campaign performance, or anomaly flags for a Fernwood client.
 ---
 
 # Weekly client ads report

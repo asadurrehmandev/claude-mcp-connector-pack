@@ -10,7 +10,7 @@ pytest
 
 Both files measure the deterministic planner in `src/switchboard/planner.py` and, on the sealed attacks, the gateway's isolation and write guards. They are not a score for Claude or for the bring-your-own-key path. That path is implemented and refuses an empty key. It was not scored, because scoring it would mean storing a provider key.
 
-Northline, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry are fictional records written for Switchboard. They are not a real agency and they are not borrowed from another project.
+Fernwood Studio, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry are fictional records written for Switchboard. They are not a real agency and they are not borrowed from another project. The studio was renamed after the first sealed hash. The prompts were not retuned. The hash below is the file after that rename.
 
 ## Original held-out file
 
@@ -32,7 +32,7 @@ The leak check concatenates the audit dump and the log lines for that case. The 
 88 prompts in `qa/sealed_tasks.json`. The file was generated once by `qa/freeze_sealed.py`, then hashed, then scored. The hash was checked before scoring (`qa/sealed_tasks.sha256`).
 
 ```
-3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad
+539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9
 ```
 
 The JSON was not edited after that hash. When a task failed, the planner changed. The task file did not.
@@ -81,7 +81,7 @@ Two unit-test expectations were also wrong relative to the product and were corr
 
 ## Pytest
 
-`pytest` on this tree: **196 passed** (Python 3.12). Coverage includes, for every one of the 19 tools, a happy path, a scope denial, a missing or invalid argument, and a foreign workspace id; dry-run on each write; a rejected `confirm` flag on each read; tenant isolation across tools and prompts; injection variants; rate limit and audit redaction; ads edges (zero clicks, zero conversions, currency micros, date boundaries, zoned datetimes rejected) plus hypothesis properties; and bearer checks for missing, expired, not-yet-valid, and wrong-audience tokens, including RS256 and refresh rotation.
+`pytest` on this tree: **204 passed** (Python 3.12). Coverage includes, for every one of the 19 tools, a happy path, a scope denial, a missing or invalid argument, and a foreign workspace id; dry-run on each write; a rejected `confirm` flag on each read; tenant isolation across tools and prompts; injection variants; rate limit and audit redaction; ads edges (zero clicks, zero conversions, currency micros, date boundaries, zoned datetimes rejected) plus hypothesis properties; and bearer checks for missing, expired, not-yet-valid, and wrong-audience tokens, including RS256 and refresh rotation.
 
 `python3 -m switchboard conformance`, in-process official MCP client: 19 tools, 5 resource templates, 3 prompts, and `crm_search_contacts` `is_error` false. HTTP coverage: missing and bad bearers on `/mcp` return 401, JWKS and protected-resource metadata return 200, and `initialize` with an RS256 access token returns 200.
 
@@ -89,6 +89,7 @@ Two unit-test expectations were also wrong relative to the product and were corr
 
 - No hosted model was graded.
 - Live HubSpot, Google Ads, Meta, Notion, ClickUp, and Slack accounts were not called. Parsers were checked with a mock transport.
-- The planner can still miss a wording that is outside both task files. The playground says when it does not recognize a request.
+- The planner can still miss a wording that is outside the task files. One checked miss: `hubspot lookup, deshmukh anita` searches for `Deshmukh Up`. The playground says when it does not recognize a request.
+- Independent review, with hashes and the 4/10, 7/10, and 8/10 scores: `qa/INDEPENDENT_QA_v1.md`. The 88-task file is a dev set.
 - The demo OAuth issuer auto-approves. Refresh tokens are in memory. That is not an end-user login.
 - A hosted model can still be persuaded by text inside `data`. The server keeps that text in the data envelope and will not apply a write unless `confirm` is true. `SECURITY.md` is the threat model.

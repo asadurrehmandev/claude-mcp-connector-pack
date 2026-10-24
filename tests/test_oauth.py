@@ -25,10 +25,10 @@ def test_expired_hmac_token_is_rejected():
     settings = _settings()
     token = issue_token(
         settings,
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         tenant_id="halden-bikes",
         scopes=["crm.read"],
-        client_id="northline-console",
+        client_id="fernwood-console",
         ttl_seconds=-30,
     )
     assert decode_token(token, settings) is None
@@ -38,10 +38,10 @@ def test_wrong_audience_is_rejected():
     settings = _settings()
     token = issue_token(
         settings,
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         tenant_id="halden-bikes",
         scopes=["crm.read"],
-        client_id="northline-console",
+        client_id="fernwood-console",
         audience="https://other.example/mcp",
     )
     assert decode_token(token, settings) is None
@@ -51,10 +51,10 @@ def test_not_yet_valid_token_is_rejected():
     settings = _settings()
     token = issue_token(
         settings,
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         tenant_id="halden-bikes",
         scopes=["crm.read"],
-        client_id="northline-console",
+        client_id="fernwood-console",
         nbf=int(time.time()) + 600,
     )
     assert decode_token(token, settings) is None
@@ -63,10 +63,10 @@ def test_not_yet_valid_token_is_rejected():
 def test_rs256_roundtrip_and_wrong_audience_claim(runtime):
     token = issue_rs256(
         runtime.settings,
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         tenant_id="halden-bikes",
         scopes=["ads.read"],
-        client_id="northline-console",
+        client_id="fernwood-console",
         ttl_seconds=ACCESS_TTL,
     )
     claims = decode_token(token, runtime.settings)

@@ -41,7 +41,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
                 {meta
                   ? `${meta.agency}, ${meta.agency_city}. One workspace per token. Tool results stay data.`
-                  : "Northline connector console."}
+                  : "Fernwood Studio connector console."}
               </p>
             </div>
             <button

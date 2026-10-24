@@ -2,7 +2,7 @@
 
 Switchboard is a small MCP server and console for an agency that wants Claude, Cursor, or another MCP client to use its CRM, ads accounts, docs, and task list without giving the model a raw vendor token.
 
-The sample tenant is **Northline**, a fictional 14-person studio written for Switchboard, in Chicago, run by Elena Voss. It is not a real agency and it is not reused from another project. The three clients are fictional too:
+The sample tenant is **Fernwood Studio**, a fictional 14-person shop in Chicago run by Elena Voss. Fernwood, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry were written for Switchboard. They are not a real agency, and they are not reused from another project. The three clients:
 
 | Workspace | Client | City | Account lead | Retainer |
 | --- | --- | --- | --- | --- |
@@ -155,7 +155,7 @@ Demo tokens are signed with the published secret `switchboard-demo-signing-secre
 ```bash
 curl -s -X POST http://127.0.0.1:4317/oauth/token \
   -d grant_type=client_credentials \
-  -d client_id=northline-console \
+  -d client_id=fernwood-console \
   -d client_secret=demo-console-secret \
   -d tenant_id=halden-bikes
 ```
@@ -222,7 +222,7 @@ The seed plants instruction-shaped text in a CRM note, a Notion page (including 
 
 ## Tests
 
-Measured on this tree with `pytest` (Python 3.12): **196 passed**.
+Measured on this tree with `pytest` (Python 3.12): **204 passed**.
 
 | File | What it holds still |
 | --- | --- |
@@ -237,6 +237,7 @@ Measured on this tree with `pytest` (Python 3.12): **196 passed**.
 | `tests/test_ads_math.py` | Hand-calculated CTR, CPA, and flags, the tool path for `cmp_halden_exact`, and a cross-tenant `not_found`. |
 | `tests/test_live_and_protocol.py` | Google and Meta row parsers, HubSpot tenant filter, MCP client handshake, HTTP 401, OAuth token, authorized `initialize`. |
 | `tests/test_eval.py` | The original held-out file: 24/24 tool choices, 24/24 argument checks, 0 leaks, 0 unsafe writes. |
+| `tests/test_planner_contract.py` | Assignee addresses are not contact names, `inbound:` and `from` parse, `workspace_id is` reads the slug, a quoted secret in Slack is refused, a quoted hijack in a note stays data. |
 
 `python3 -m switchboard conformance` reports 19 tools, 5 resource templates, 3 prompts, and a successful `crm_search_contacts` call.
 
@@ -251,7 +252,7 @@ Original held-out file, `qa/eval_results.json`:
 | Unsafe-write count | 0 of 9 cases |
 | Snapshot reverts of a handler that wrote during a dry run | 1 |
 
-Sealed file, `qa/sealed_eval_results.json`, hash `3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad`. The hash was written before the scoring run. The file was not edited to fit the planner.
+Sealed dev set, `qa/sealed_eval_results.json`, hash `539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9`. That hash replaced `3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad` when the studio was renamed from its previous name to Fernwood. The prompts were not edited to fit the planner.
 
 | Category | Tasks | Tools | Arguments | Safety check |
 | --- | ---: | ---: | ---: | --- |
@@ -270,14 +271,24 @@ Sealed file, `qa/sealed_eval_results.json`, hash `3bc84b0998a9a3ee707e4325c04010
 
 Failures on the scored run: none. Three planner bugs showed up on earlier runs of the same frozen file and were fixed in `src/switchboard/planner.py` only. They are written up in `qa/REPORT.md`.
 
-Both evals measure the scripted planner, not Claude.
+That 88-task file is a dev set. Planner bugs were fixed against it after it had already been scored. The independent review is `qa/INDEPENDENT_QA_v1.md`.
+
+| Set | Tasks | Tools | Arguments | Score | P0 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| v1, hash `07f64c64e3d2f7092e053213f7a7992d09048ab440c702a46d485aaad5a2b378` | 102 | 49 | 39 | 4/10 | 8, including three writes and five wrong money windows |
+| v2, hash `bd5994723a6c29caf8399aec22b410bb093f82597084de0c2177881fdfca1106` | 106 | 95 | 91 | 7/10 | none |
+| v3, hash `6691d2a507da47eaf8d1f73e322d24fcf3bc8a4ae579b19527c47b38d66bc756` | 113 | 113 | 111 | 8/10 | none |
+
+v3 still misses two arguments. `hubspot lookup, deshmukh anita` searches for `Deshmukh Up`, and a dry-run whose earlier company cue is a quoted instruction stores that quoted string. Neither writes, and neither reads another tenant. The publish bar used in that review was 8/10 with no P0.
+
+Both the dev-set evals and the independent sets measure the scripted planner, not Claude.
 
 ## Limitations
 
 - The built-in issuer is a demo. It does not authenticate a person. Refresh tokens and the generated RSA key live in process memory. Set `SWITCHBOARD_JWT_PRIVATE_KEY_PEM` if RS256 tokens should survive a restart. There is one JWKS key, not a rotation set.
 - The sealed eval grades the scripted planner. It does not grade Claude or the bring-your-own-key path. Tool descriptions and the result notice tell a hosted model that `data` is untrusted. This repo does not claim the model will obey that.
 - The console API does not require a bearer token in demo mode. Do not expose port 4317 on a shared network in that mode. MCP always requires a bearer token.
-- Live vendor clients build real HTTP requests and are tested with a mock transport. They have not been run against Northline's production accounts, because those accounts do not exist.
+- Live vendor clients build real HTTP requests and are tested with a mock transport. They have not been run against Fernwood's production accounts, because those accounts do not exist.
 - ClickUp's live update path changes name and status. Reassignment is guaranteed on create, where the member id is sent. Check the live update response before relying on it for assignee changes.
 - Anomaly thresholds are fixed constants, not per-client goals.
 - The default BYOK model names can 404 on an account that does not have them. The playground accepts another model id.

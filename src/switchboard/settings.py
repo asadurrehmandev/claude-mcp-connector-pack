@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 DEMO_SIGNING_SECRET = "switchboard-demo-signing-secret"
-DEMO_OAUTH_CLIENT_ID = "northline-console"
+DEMO_OAUTH_CLIENT_ID = "fernwood-console"
 DEMO_OAUTH_CLIENT_SECRET = "demo-console-secret"
 
 ALL_SCOPES: tuple[str, ...] = (

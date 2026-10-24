@@ -162,10 +162,10 @@ async def test_mcp_conformance_and_http_auth(runtime):
             access = issued.json()["access_token"]
             bearer = issue_token(
                 runtime.settings,
-                subject="elena.voss@northline.studio",
+                subject="elena.voss@fernwood.studio",
                 tenant_id="halden-bikes",
                 scopes=["crm.read", "ads.read"],
-                client_id="northline-console",
+                client_id="fernwood-console",
             )
             assert access
             health = await http.get("/health")

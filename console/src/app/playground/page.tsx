@@ -39,7 +39,7 @@ const SUGGESTIONS = [
     label: "Dry-run lead",
     workspace: "halden-bikes",
     message:
-      'Add a lead named Chris Adeyemi chris.adeyemi@haldenbikes.com at Halden Bikes, task "Send the media plan", assign priya.shah@northline.studio',
+      'Add a lead named Chris Adeyemi chris.adeyemi@haldenbikes.com at Halden Bikes, task "Send the media plan", assign priya.shah@fernwood.studio',
   },
 ];
 

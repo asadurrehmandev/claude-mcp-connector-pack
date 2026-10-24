@@ -35,7 +35,7 @@ HAPPY = {
     "projects_list_members": {},
     "projects_create_task": {
         "name": "Call Mara",
-        "assignee_email": "jonah.park@northline.studio",
+        "assignee_email": "jonah.park@fernwood.studio",
         "confirm": True,
     },
     "projects_update_task": {"task_id": "task_halden_landing", "status": "review", "confirm": True},

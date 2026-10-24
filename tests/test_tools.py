@@ -49,9 +49,9 @@ async def test_every_read_tool_and_descriptions(runtime):
     tasks = await runtime.gateway.invoke("projects_list_tasks", {"status": "open"}, principal=who)
     assert {row["id"] for row in tasks["data"]["tasks"]} >= {"task_halden_landing"}
     task = await runtime.gateway.invoke("projects_get_task", {"task_id": "task_halden_landing"}, principal=who)
-    assert task["data"]["task"]["assignee_email"].endswith("@northline.studio")
+    assert task["data"]["task"]["assignee_email"].endswith("@fernwood.studio")
     members = await runtime.gateway.invoke("projects_list_members", {}, principal=who)
-    assert any(row["email"] == "jonah.park@northline.studio" for row in members["data"]["members"])
+    assert any(row["email"] == "jonah.park@fernwood.studio" for row in members["data"]["members"])
 
     channels = await runtime.gateway.invoke("slack_list_channels", {}, principal=who)
     assert channels["data"]["channels"] == [{"name": "#client-halden"}]
@@ -109,13 +109,13 @@ async def test_writes_require_confirm_and_valid_assignee(runtime):
         "projects_create_task",
         {
             "name": "Cut the warehouse film",
-            "assignee_email": "Andre.Molina@northline.studio",
+            "assignee_email": "Andre.Molina@fernwood.studio",
             "due_date": "2026-03-21",
             "confirm": True,
         },
         principal=who,
     )
-    assert created["data"]["task"]["assignee_email"] == "andre.molina@northline.studio"
+    assert created["data"]["task"]["assignee_email"] == "andre.molina@fernwood.studio"
     task_id = created["data"]["task"]["id"]
     preview = await runtime.gateway.invoke(
         "projects_update_task",

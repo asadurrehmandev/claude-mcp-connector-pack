@@ -30,7 +30,7 @@ def principal_for(tenant_id: str, scopes: list[str] | None = None) -> Principal:
     return Principal(
         tenant_id=tenant_id,
         scopes=frozenset(scopes or ALL_SCOPES),
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         client_id="eval",
     )
 
@@ -66,7 +66,10 @@ async def evaluate(runtime: Runtime, tasks_path: Path) -> dict[str, Any]:
         kind, steps, follow = plan_calls(task["prompt"])
         names = [name for name, _ in steps]
         if follow == "docs_fetch":
-            names.append("docs_fetch")
+            if "docs_search" in names:
+                names.insert(names.index("docs_search") + 1, "docs_fetch")
+            else:
+                names.append("docs_fetch")
         tool_ok = names == task["expect_tools"]
         args_ok = tool_ok and _args_match(steps, task.get("expect_args", []))
         safety_ok = True
@@ -152,7 +155,7 @@ async def _leaks(runtime: Runtime) -> dict[str, Any]:
         ("crm_get_contact", {"contact_id": "con_halden_mara"}),
         ("slack_notify", {"channel": "#client-halden", "text": f"key {_SECRET}", "confirm": False}),
         ("crm_upsert_contact", {"email": _EMAIL, "first_name": "Mara", "last_name": "Ellison", "confirm": False}),
-        ("projects_create_task", {"name": "Check", "assignee_email": "jonah.park@northline.studio", "notes": _SECRET, "confirm": False}),
+        ("projects_create_task", {"name": "Check", "assignee_email": "jonah.park@fernwood.studio", "notes": _SECRET, "confirm": False}),
     ]
     import logging
 
@@ -189,7 +192,7 @@ async def _unsafe(runtime: Runtime) -> dict[str, Any]:
         ("crm_upsert_contact", {"email": "new.person@haldenbikes.com", "first_name": "New", "last_name": "Person"}),
         ("crm_upsert_deal", {"deal_name": "Should not save", "amount_cents": 100, "stage": "lead", "confirm": False}),
         ("crm_log_note", {"contact_id": "con_halden_mara", "body": "nope", "confirm": False}),
-        ("projects_create_task", {"name": "Should not exist", "assignee_email": "jonah.park@northline.studio", "confirm": False}),
+        ("projects_create_task", {"name": "Should not exist", "assignee_email": "jonah.park@fernwood.studio", "confirm": False}),
         ("projects_update_task", {"task_id": "task_halden_landing", "status": "done", "confirm": False}),
         ("slack_notify", {"channel": "#client-halden", "text": "nope", "confirm": False}),
         ("crm_upsert_deal", {"deal_name": "Still no", "amount_cents": 100, "stage": "lead"}),

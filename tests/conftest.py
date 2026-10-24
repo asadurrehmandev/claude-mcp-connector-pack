@@ -21,6 +21,6 @@ def principal(tenant_id: str = "halden-bikes", scopes: list[str] | None = None) 
     return Principal(
         tenant_id=tenant_id,
         scopes=frozenset(scopes if scopes is not None else ALL_SCOPES),
-        subject="elena.voss@northline.studio",
+        subject="elena.voss@fernwood.studio",
         client_id="test",
     )

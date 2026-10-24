@@ -1,8 +1,8 @@
 """Shared copy and the fixed clock used by demo mode.
 
-Northline, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry are
-fictional records written for Switchboard. They are not a real agency and they
-are not reused from another project.
+Fernwood Studio, Halden Bikes, Sable & Rye, and Brightline Pediatric Dentistry
+are fictional records written for Switchboard. They are not a real agency and
+they are not reused from another project.
 """
 
 from datetime import date
