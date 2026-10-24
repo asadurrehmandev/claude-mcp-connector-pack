@@ -1,6 +1,6 @@
 "use client";
 
-import { Problem } from "@/components/records";
+import { Empty, Loading, Problem } from "@/components/records";
 import { Button, Input } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { api, type Step } from "@/lib/api";
@@ -86,7 +86,7 @@ export default function PlaygroundPage() {
     }
   }
 
-  if (loading) return <p className="text-muted">Loading the playground.</p>;
+  if (loading) return <Loading>Loading the playground.</Loading>;
   if (error || !current) return <Problem message={error || "No workspace."} />;
 
   const latest = [...turns].reverse().find((turn) => turn.role === "assistant");
@@ -177,9 +177,9 @@ export default function PlaygroundPage() {
         </form>
         <div className="mt-8 grid gap-5">
           {turns.length === 0 ? (
-            <p className="text-sm leading-6 text-muted">
-              Nothing has run in this tab. A suggestion fills the box; Run sends it to {current.name}.
-            </p>
+            <Empty title="No turns in this tab yet">
+              Pick a suggestion or write a request, then Run. The planner sends it to {current.name}. A write stays a dry-run until the message asks to confirm.
+            </Empty>
           ) : null}
           {turns.map((turn) => (
             <article key={turn.id} className="border-t border-rule pt-4">
@@ -193,9 +193,9 @@ export default function PlaygroundPage() {
       <aside className="lg:border-l lg:border-rule lg:pl-6">
         <h2 className="text-lg">Tool calls</h2>
         {!latest?.steps?.length ? (
-          <p className="mt-3 text-sm leading-6 text-muted">
-            Arguments, results, and timings show up here after a turn that calls a tool.
-          </p>
+          <Empty title="No tool call to inspect">
+            Arguments, the result envelope, and the duration show up here after a turn that calls a tool. A refusal stays in the transcript and leaves this pane empty.
+          </Empty>
         ) : (
           <ol className="mt-4 grid gap-4">
             {latest.steps.map((step, index) => (

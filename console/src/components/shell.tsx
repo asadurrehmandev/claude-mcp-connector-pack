@@ -71,6 +71,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-wrap gap-x-5 gap-y-2" role="tablist" aria-label="Client workspace">
+              {!loading && !error && workspaces.length === 0 ? (
+                <p className="text-sm text-muted">No client workspaces came back from the API.</p>
+              ) : null}
               {workspaces.map((item) => {
                 const selected = item.id === (workspaces.some((row) => row.id === id) ? id : workspaces[0]?.id);
                 return (
@@ -91,7 +94,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 );
               })}
             </div>
-            <p className="font-mono text-xs text-muted">
+            <p className="inline-flex w-fit items-center border border-rule px-2 py-1 font-mono text-xs text-muted">
               {loading ? "Loading" : error ? "API unreachable" : meta?.demo ? "Demo · mock data" : "Live credentials"}
             </p>
           </div>

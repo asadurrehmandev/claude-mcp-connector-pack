@@ -1,6 +1,40 @@
 "use client";
 
 import type { AuditRow } from "@/lib/api";
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+export function Loading({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-sm text-muted" role="status">
+      {children}
+    </p>
+  );
+}
+
+export function Empty({
+  title,
+  children,
+  href,
+  action,
+}: {
+  title: string;
+  children: ReactNode;
+  href?: string;
+  action?: string;
+}) {
+  return (
+    <div className="mt-6 max-w-[62ch] border border-rule bg-field px-4 py-5">
+      <p className="text-base text-ink">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-muted">{children}</p>
+      {href && action ? (
+        <Link href={href} className="mt-3 inline-block text-sm text-accent underline decoration-accent/40 underline-offset-4">
+          {action}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
 
 export function AuditTable({ rows }: { rows: AuditRow[] }) {
   return (

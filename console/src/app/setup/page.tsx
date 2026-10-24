@@ -1,6 +1,6 @@
 "use client";
 
-import { Problem } from "@/components/records";
+import { Empty, Loading, Problem } from "@/components/records";
 import { Button } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { api } from "@/lib/api";
@@ -24,7 +24,7 @@ export default function SetupPage() {
     setCopied(key);
   }
 
-  if (loading) return <p className="text-muted">Loading setup.</p>;
+  if (loading) return <Loading>Loading setup.</Loading>;
   if (error || !meta) return <Problem message={error || "No setup metadata."} />;
 
   return (
@@ -43,7 +43,13 @@ export default function SetupPage() {
         <p className="mt-4 text-sm text-muted">Live mode does not publish a demo bearer. Mint one with the token curl below, using your own client secret.</p>
       )}
       {pageError ? <p className="mt-4 text-sm text-accent">{pageError}</p> : null}
-      {snippets ? (
+      {!snippets && !pageError ? <Loading>Loading the client snippets.</Loading> : null}
+      {snippets && Object.keys(snippets).length === 0 ? (
+        <Empty title="No setup snippets were returned">
+          The API responded without Claude Desktop, Claude Code, or Cursor config. Reload after the Switchboard process is up.
+        </Empty>
+      ) : null}
+      {snippets && Object.keys(snippets).length > 0 ? (
         <div className="mt-8 grid gap-8">
           <Snippet title="Claude Desktop (stdio)" id="claude_desktop" value={snippets.claude_desktop} copied={copied} onCopy={copy} />
           <Snippet title="Claude Code" id="claude_code" value={snippets.claude_code} copied={copied} onCopy={copy} />

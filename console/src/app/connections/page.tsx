@@ -1,11 +1,11 @@
 "use client";
 
-import { Problem } from "@/components/records";
+import { Empty, Loading, Problem } from "@/components/records";
 import { useWorkspace } from "@/components/workspace";
 
 export default function ConnectionsPage() {
   const { meta, loading, error } = useWorkspace();
-  if (loading) return <p className="text-muted">Loading connections.</p>;
+  if (loading) return <Loading>Loading connections.</Loading>;
   if (error || !meta) return <Problem message={error || "No connector status."} />;
 
   return (
@@ -16,6 +16,11 @@ export default function ConnectionsPage() {
         backend or a live HTTP client. A pasted model key in the playground is separate, and it is not one of these
         credentials.
       </p>
+      {meta.connectors.length === 0 ? (
+        <Empty title="No connector status to show">
+          The API returned no systems. Start the Switchboard process and reload. Vendor keys, when you add them, stay in the server environment and never appear on this page.
+        </Empty>
+      ) : (
       <ul className="mt-8 divide-y divide-rule border-y border-rule">
         {meta.connectors.map((row) => (
           <li key={row.id} className="grid gap-2 py-4 sm:grid-cols-[180px_80px_1fr] sm:items-baseline">
@@ -25,6 +30,7 @@ export default function ConnectionsPage() {
           </li>
         ))}
       </ul>
+      )}
       <p className="mt-6 text-sm leading-6 text-muted">
         Live mode also needs a tenant map: a Google Ads customer id, a Meta ad account, Notion page ids, a ClickUp
         list, or a Slack channel allowlist. Without the map, that connector refuses the call instead of reading

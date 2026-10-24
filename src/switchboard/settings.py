@@ -59,6 +59,7 @@ class Settings(BaseModel):
     clickup_list_map: dict[str, str] = Field(default_factory=dict)
     slack_bot_token: str = ""
     slack_allowlist: dict[str, list[str]] = Field(default_factory=dict)
+    jwt_private_key_pem: str = ""
     console_origins: list[str] = Field(
         default_factory=lambda: ["http://127.0.0.1:4318", "http://localhost:4318"]
     )
@@ -134,6 +135,7 @@ class Settings(BaseModel):
             clickup_list_map=_json_map(os.environ.get("CLICKUP_LIST_MAP", "")),
             slack_bot_token=os.environ.get("SLACK_BOT_TOKEN", "").strip(),
             slack_allowlist=_json_map(os.environ.get("SLACK_ALLOWLIST", "")),
+            jwt_private_key_pem=os.environ.get("SWITCHBOARD_JWT_PRIVATE_KEY_PEM", "").replace("\\n", "\n").strip(),
         )
 
 

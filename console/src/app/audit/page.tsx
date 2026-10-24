@@ -1,6 +1,6 @@
 "use client";
 
-import { AuditTable, Problem } from "@/components/records";
+import { AuditTable, Empty, Loading, Problem } from "@/components/records";
 import { useWorkspace } from "@/components/workspace";
 import { api, type AuditRow } from "@/lib/api";
 import { useEffect, useState } from "react";
@@ -22,7 +22,7 @@ export default function AuditPage() {
       .catch((reason: Error) => setPageError(reason.message));
   }, [current]);
 
-  if (loading) return <p className="text-muted">Loading the audit log.</p>;
+  if (loading) return <Loading>Loading the audit log.</Loading>;
   if (error || !current) return <Problem message={error || "No workspace."} />;
 
   return (
@@ -34,8 +34,11 @@ export default function AuditPage() {
         or a denial.
       </p>
       {pageError ? <p className="mt-4 text-sm text-accent">{pageError}</p> : null}
+      {!rows && !pageError ? <Loading>Loading rows for {current.name}.</Loading> : null}
       {rows && rows.length === 0 ? (
-        <p className="mt-6 text-sm text-muted">No audit rows for this workspace yet.</p>
+        <Empty title="This workspace has no audit rows" href="/playground" action="Run a tool in the playground">
+          Nothing has been called as {current.name}. A denied call is logged too, with the secret and the email already redacted.
+        </Empty>
       ) : null}
       {rows && rows.length > 0 ? <AuditTable rows={rows} /> : null}
       {rows && rows.length > 0 ? (

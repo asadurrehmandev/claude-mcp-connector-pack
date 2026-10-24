@@ -56,6 +56,12 @@ def _limit(value: int) -> int:
 
 
 def _date(value: str, field: str) -> date:
+    # Calendar dates only. A timestamp or offset would shift the reporting day.
+    if not isinstance(value, str) or len(value) != 10 or value[4] != "-" or value[7] != "-":
+        raise SwitchboardError(
+            "validation",
+            f"{field} must be a calendar date YYYY-MM-DD, not a timestamp or zoned datetime",
+        )
     try:
         return date.fromisoformat(value)
     except ValueError as exc:

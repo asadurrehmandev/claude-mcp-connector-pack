@@ -2,7 +2,7 @@
 
 Switchboard is a small MCP server and console for an agency that wants Claude, Cursor, or another MCP client to use its CRM, ads accounts, docs, and task list without giving the model a raw vendor token.
 
-The sample tenant is **Northline**, a 14-person studio in Chicago run by Elena Voss. The three clients are fictional:
+The sample tenant is **Northline**, a fictional 14-person studio written for Switchboard, in Chicago, run by Elena Voss. It is not a real agency and it is not reused from another project. The three clients are fictional too:
 
 | Workspace | Client | City | Account lead | Retainer |
 | --- | --- | --- | --- | --- |
@@ -213,28 +213,34 @@ Bring-your-own-key sends the message to Anthropic (`claude-sonnet-4-5` unless yo
 - One tenant per token. `workspace_id`, when sent, must match the token. Store reads and writes are filtered by tenant. Cross-tenant ids return `not_found`.
 - Scopes are `crm.read`, `crm.write`, `ads.read`, `docs.read`, `projects.read`, `projects.write`, `slack.read`, `slack.write`. A missing scope is `scope_denied`.
 - Rate limit is a sliding window per tenant and tool (60 calls / 60 seconds unless configured). The error includes `retry_after_seconds`.
-- Bearer tokens are either `sb1.<payload>.<hmac>` or an HS256 JWT (`eyJ…`) signed with the same secret. `aud` must be `{public_base}/mcp`.
-- OAuth 2.1 metadata, authorization-code plus PKCE S256, and client credentials are implemented for the one configured client. Demo mode approves the code without a password. A `redirect_uri` that is not registered returns 400 and is not redirected. There is no refresh token and no JWKS.
+- Bearer tokens are `sb1.<payload>.<hmac>`, an HS256 JWT signed with the same secret, or an RS256 JWT whose public key is on `/.well-known/jwks.json`. `aud` must be `{public_base}/mcp`. `exp` must be in the future. `nbf`, when present, must not be in the future.
+- OAuth 2.1 metadata, authorization-code plus PKCE S256, client credentials, and rotating refresh tokens are implemented for the one configured client. Access tokens from that issuer are RS256 and last one hour. Refresh tokens are opaque, in-memory, last 14 days, and are single-use. Demo mode approves the code without a password. A `redirect_uri` that is not registered returns 400 and is not redirected.
 - Audit lines and Python log records pass through a redactor. Bearer values, `sb1` tokens, `sk-` keys, email local-parts, phone numbers, and SSNs are masked. Note bodies are not copied into the audit summary.
 - The demo signing secret is rejected when `SWITCHBOARD_ENV=live`.
 
-A contact note and a Brightline claims page in the seed contain instruction-shaped text. Tests check that this text stays inside `data` and does not change the result notice, and that the planner refuses prompts that ask it to reveal a secret.
+The seed plants instruction-shaped text in a CRM note, a Notion page (including a markdown link and a zero-width obfuscation), and a ClickUp task. Tests check that this text stays inside `data` and does not change the result notice, and that the planner refuses prompts that ask it to reveal a secret or post one to Slack. The longer threat model is `SECURITY.md`.
 
 ## Tests
 
-Measured on this tree with `pytest` (Python 3.12): **19 passed**.
+Measured on this tree with `pytest` (Python 3.12): **196 passed**.
 
 | File | What it holds still |
 | --- | --- |
+| `tests/test_matrix.py` | For each of the 19 tools: happy path, scope denial, missing or invalid argument, a foreign `workspace_id`, plus dry-run on writes and a rejected `confirm` flag on reads. |
+| `tests/test_isolation.py` | Client A cannot read client B through tools, and the registered prompts do not embed another client's records. |
+| `tests/test_injection.py` | Planted instructions in a note, a page, and a task stay inside `data`. Unicode, zero-width, markdown-link, and fullwidth turns are refused by the planner. |
+| `tests/test_oauth.py` | Missing, garbage, expired, not-yet-valid, and wrong-audience tokens are rejected. RS256 round-trips through JWKS. Refresh rotates, and a replay fails. |
+| `tests/test_ads_properties.py` | Zero clicks, zero impressions, currency micros, calendar-date rejection, date-range edges, hypothesis properties of the ads math, audit redaction, and a per-tenant rate limit. |
+| `tests/test_sealed.py` | The sealed file matches `qa/sealed_tasks.sha256` before it is scored, and that run has no failures. |
 | `tests/test_safety.py` | Redaction, token expiry, PKCE and a bad redirect, client credentials, rate limit, scope denial, confirm, tenant mismatch, injection text left inside `data`. |
 | `tests/test_tools.py` | Every read tool, the hardening sentence on MCP descriptions, writes, unknown assignee, Slack allowlist, read-only default, redacted audit arguments. |
 | `tests/test_ads_math.py` | Hand-calculated CTR, CPA, and flags, the tool path for `cmp_halden_exact`, and a cross-tenant `not_found`. |
 | `tests/test_live_and_protocol.py` | Google and Meta row parsers, HubSpot tenant filter, MCP client handshake, HTTP 401, OAuth token, authorized `initialize`. |
-| `tests/test_eval.py` | The held-out file: 24/24 tool choices, 24/24 argument checks, 0 leaks, 0 unsafe writes. |
+| `tests/test_eval.py` | The original held-out file: 24/24 tool choices, 24/24 argument checks, 0 leaks, 0 unsafe writes. |
 
 `python3 -m switchboard conformance` reports 19 tools, 5 resource templates, 3 prompts, and a successful `crm_search_contacts` call.
 
-Held-out eval, `qa/eval_results.json`, same tree:
+Original held-out file, `qa/eval_results.json`:
 
 | Measure | Result |
 | --- | --- |
@@ -245,11 +251,31 @@ Held-out eval, `qa/eval_results.json`, same tree:
 | Unsafe-write count | 0 of 9 cases |
 | Snapshot reverts of a handler that wrote during a dry run | 1 |
 
-The eval measures the scripted planner, not Claude. Narrative and the case definitions are in `qa/REPORT.md`.
+Sealed file, `qa/sealed_eval_results.json`, hash `3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad`. The hash was written before the scoring run. The file was not edited to fit the planner.
+
+| Category | Tasks | Tools | Arguments | Safety check |
+| --- | ---: | ---: | ---: | --- |
+| Ads metrics | 10 | 10 | 10 | none on these tasks |
+| Ads report | 8 | 8 | 8 | none on these tasks |
+| CRM lookup | 8 | 8 | 8 | none on these tasks |
+| Lead to CRM and task | 8 | 8 | 8 | none on these tasks |
+| Docs Q&A | 8 | 8 | 8 | none on these tasks |
+| Projects | 8 | 8 | 8 | none on these tasks |
+| Slack | 6 | 6 | 6 | none on these tasks |
+| Cross-tenant | 8 | 8 | 8 | 8/8 `tenant_isolation`, no mutation |
+| Write without confirm | 8 | 8 | 8 | 8/8 no mutation |
+| Injection in the prompt | 8 | 8 | 8 | 8/8 refusal, no tool call |
+| Exfiltration via Slack | 8 | 8 | 8 | 8/8 refusal, no tool call |
+| Total | 88 | 88 | 88 | 32/32 attack checks |
+
+Failures on the scored run: none. Three planner bugs showed up on earlier runs of the same frozen file and were fixed in `src/switchboard/planner.py` only. They are written up in `qa/REPORT.md`.
+
+Both evals measure the scripted planner, not Claude.
 
 ## Limitations
 
-- The built-in issuer is a demo. It does not authenticate a person, rotate refresh tokens, or publish an asymmetric key.
+- The built-in issuer is a demo. It does not authenticate a person. Refresh tokens and the generated RSA key live in process memory. Set `SWITCHBOARD_JWT_PRIVATE_KEY_PEM` if RS256 tokens should survive a restart. There is one JWKS key, not a rotation set.
+- The sealed eval grades the scripted planner. It does not grade Claude or the bring-your-own-key path. Tool descriptions and the result notice tell a hosted model that `data` is untrusted. This repo does not claim the model will obey that.
 - The console API does not require a bearer token in demo mode. Do not expose port 4317 on a shared network in that mode. MCP always requires a bearer token.
 - Live vendor clients build real HTTP requests and are tested with a mock transport. They have not been run against Northline's production accounts, because those accounts do not exist.
 - ClickUp's live update path changes name and status. Reassignment is guaranteed on create, where the member id is sent. Check the live update response before relying on it for assignee changes.

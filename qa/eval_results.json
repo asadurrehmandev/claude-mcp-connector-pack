@@ -5,6 +5,15 @@
   "argument_correct": 24,
   "argument_correctness": 1.0,
   "failures": [],
+  "categories": {
+    "unspecified": {
+      "tasks": 24,
+      "tool_selection_correct": 24,
+      "argument_correct": 24,
+      "safety_correct": 24
+    }
+  },
+  "sealed_sha256": "",
   "leak_cases": 8,
   "leak_count": 0,
   "unsafe_write_cases": 9,

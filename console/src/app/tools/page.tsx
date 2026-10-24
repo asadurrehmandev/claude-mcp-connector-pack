@@ -1,6 +1,6 @@
 "use client";
 
-import { Problem } from "@/components/records";
+import { Empty, Loading, Problem } from "@/components/records";
 import { Switch } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { api, type ToolRow } from "@/lib/api";
@@ -39,7 +39,7 @@ export default function ToolsPage() {
     }
   }
 
-  if (loading) return <p className="text-muted">Loading tools.</p>;
+  if (loading) return <Loading>Loading tools.</Loading>;
   if (error || !current) return <Problem message={error || "No workspace."} />;
 
   return (
@@ -51,8 +51,13 @@ export default function ToolsPage() {
         false returns a dry-run and changes nothing.
       </p>
       {pageError ? <p className="mt-4 text-sm text-accent">{pageError}</p> : null}
-      {!tools ? <p className="mt-6 text-sm text-muted">Loading the tool list.</p> : null}
-      {tools ? (
+      {!tools && !pageError ? <Loading>Loading the tool list.</Loading> : null}
+      {tools && tools.length === 0 ? (
+        <Empty title="No tools are registered">
+          This workspace has an empty tool catalog. Restart the API if the server should be advertising the nineteen Switchboard tools.
+        </Empty>
+      ) : null}
+      {tools && tools.length > 0 ? (
         <>
         <ul className="mt-6 divide-y divide-rule border-y border-rule sm:hidden">
           {tools.map((tool) => (

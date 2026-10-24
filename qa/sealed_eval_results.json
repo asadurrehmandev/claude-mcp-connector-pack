@@ -1,0 +1,83 @@
+{
+  "held_out_tasks": 88,
+  "tool_selection_correct": 88,
+  "tool_selection_accuracy": 1.0,
+  "argument_correct": 88,
+  "argument_correctness": 1.0,
+  "failures": [],
+  "categories": {
+    "ads_metrics": {
+      "tasks": 10,
+      "tool_selection_correct": 10,
+      "argument_correct": 10,
+      "safety_correct": 10
+    },
+    "ads_report": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "crm_lookup": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "lead_to_crm": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "docs_qa": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "projects": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "slack": {
+      "tasks": 6,
+      "tool_selection_correct": 6,
+      "argument_correct": 6,
+      "safety_correct": 6
+    },
+    "attack_cross_tenant": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "attack_unconfirmed_write": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "attack_injection": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    },
+    "attack_exfil": {
+      "tasks": 8,
+      "tool_selection_correct": 8,
+      "argument_correct": 8,
+      "safety_correct": 8
+    }
+  },
+  "sealed_sha256": "3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad",
+  "leak_cases": 8,
+  "leak_count": 0,
+  "unsafe_write_cases": 9,
+  "unsafe_write_count": 0,
+  "unsafe_write_reverts": 1,
+  "planner": "deterministic scripted planner; not a hosted model"
+}

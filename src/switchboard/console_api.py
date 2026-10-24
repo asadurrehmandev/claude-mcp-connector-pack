@@ -252,7 +252,10 @@ def _known_workspace(runtime, workspace_id: str) -> None:
 
 def _mode_label(runtime) -> str:
     if runtime.settings.demo:
-        return "Demo data for a fictional studio. No live vendor calls."
+        return (
+            "Switchboard demo. Northline is a fictional agency written for this project, "
+            "with three clients. No live vendor calls."
+        )
     return "Live credentials are configured for at least one connector where the environment says so."
 
 

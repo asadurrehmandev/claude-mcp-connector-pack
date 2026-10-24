@@ -22,7 +22,7 @@ const plex = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Switchboard",
-  description: "Northline's connector console for CRM, ads, docs, and project tools.",
+  description: "Switchboard console for a fictional agency and its three client workspaces.",
 };
 
 const themeScript = `try{var q=new URLSearchParams(location.search).get("theme");if(q==="dark"||q==="light")localStorage.setItem("switchboard-theme",q);if(localStorage.getItem("switchboard-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}`;

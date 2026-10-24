@@ -1,11 +1,13 @@
 """Held-out planner tasks, leak checks, and unsafe-write checks.
 
 The numbers this writes are measurements of this process. They are not a
-language-model benchmark.
+language-model benchmark. qa/sealed_tasks.json is hashed; evaluate() rejects
+a file whose bytes do not match qa/sealed_tasks.sha256.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -33,28 +35,62 @@ def principal_for(tenant_id: str, scopes: list[str] | None = None) -> Principal:
     )
 
 
+def sealed_digest(tasks_path: Path) -> str:
+    return hashlib.sha256(tasks_path.read_bytes()).hexdigest()
+
+
+def assert_sealed(tasks_path: Path) -> str:
+    digest = sealed_digest(tasks_path)
+    sibling = tasks_path.with_suffix(".sha256")
+    recorded = sibling.read_text(encoding="utf-8").split()[0]
+    if recorded != digest:
+        raise RuntimeError(f"sealed task hash mismatch: file {digest} recorded {recorded}")
+    return digest
+
+
 async def evaluate(runtime: Runtime, tasks_path: Path) -> dict[str, Any]:
+    sealed = tasks_path.name == "sealed_tasks.json"
+    digest = assert_sealed(tasks_path) if sealed else ""
     tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
     tool_hits = 0
     arg_hits = 0
     failures: list[dict[str, Any]] = []
+    categories: dict[str, dict[str, int]] = {}
     for task in tasks:
+        category = task.get("category", "unspecified")
+        bucket = categories.setdefault(
+            category,
+            {"tasks": 0, "tool_selection_correct": 0, "argument_correct": 0, "safety_correct": 0},
+        )
+        bucket["tasks"] += 1
         kind, steps, follow = plan_calls(task["prompt"])
         names = [name for name, _ in steps]
         if follow == "docs_fetch":
             names.append("docs_fetch")
         tool_ok = names == task["expect_tools"]
         args_ok = tool_ok and _args_match(steps, task.get("expect_args", []))
+        safety_ok = True
+        safety_detail = ""
+        check = task.get("check") or "none"
+        if check != "none":
+            safety_ok, safety_detail = await _safety_check(runtime, task, check)
         tool_hits += int(tool_ok)
         arg_hits += int(args_ok)
-        if not tool_ok or not args_ok:
+        bucket["tool_selection_correct"] += int(tool_ok)
+        bucket["argument_correct"] += int(args_ok)
+        bucket["safety_correct"] += int(safety_ok)
+        if not tool_ok or not args_ok or not safety_ok:
             failures.append(
                 {
                     "id": task["id"],
+                    "category": category,
                     "expect_tools": task["expect_tools"],
                     "actual_tools": names,
+                    "actual_args": [dict(arguments) for _, arguments in steps],
                     "tool_ok": tool_ok,
                     "args_ok": args_ok,
+                    "safety_ok": safety_ok,
+                    "safety_detail": safety_detail,
                 }
             )
     leaks = await _leaks(runtime)
@@ -67,6 +103,8 @@ async def evaluate(runtime: Runtime, tasks_path: Path) -> dict[str, Any]:
         "argument_correct": arg_hits,
         "argument_correctness": arg_hits / total if total else 0,
         "failures": failures,
+        "categories": categories,
+        "sealed_sha256": digest,
         "leak_cases": leaks["cases"],
         "leak_count": leaks["leaks"],
         "unsafe_write_cases": unsafe["cases"],
@@ -74,6 +112,22 @@ async def evaluate(runtime: Runtime, tasks_path: Path) -> dict[str, Any]:
         "unsafe_write_reverts": runtime.gateway.unsafe_write_reverts,
         "planner": "deterministic scripted planner; not a hosted model",
     }
+
+
+async def _safety_check(runtime: Runtime, task: dict[str, Any], check: str) -> tuple[bool, str]:
+    before = runtime.store.revision
+    result = await run_turn(runtime.gateway, principal_for("halden-bikes"), task["prompt"])
+    mutated = runtime.store.revision != before
+    if check == "no_mutation":
+        return (not mutated, "" if not mutated else "store revision changed")
+    if check == "isolation":
+        code = result["steps"][0]["error_code"] if result["steps"] else ""
+        ok = code == "tenant_isolation" and not mutated
+        return ok, "" if ok else f"error={code} mutated={mutated}"
+    if check == "refusal":
+        ok = result["kind"] == "refusal" and result["steps"] == [] and not mutated
+        return ok, "" if ok else f"kind={result['kind']} steps={len(result['steps'])}"
+    return False, f"unknown check {check}"
 
 
 def _args_match(steps: list[tuple[str, dict[str, Any]]], expected: list[dict[str, Any]]) -> bool:

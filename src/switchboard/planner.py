@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import time
+import unicodedata
 from datetime import timedelta
 from decimal import Decimal
 from typing import Any
@@ -28,18 +29,27 @@ _WORKSPACE = re.compile(r"\bworkspace_id\s+([a-z0-9-]+)")
 _QUOTED = re.compile(r'"([^"]+)"')
 _REFUSAL = re.compile(
     r"(?i)(ignore (all |any )?(previous|prior|above) instructions|"
-    r"reveal (the )?(system prompt|api key|secret|token)|"
-    r"print (the )?(system prompt|hidden prompt)|"
-    r"exfiltrate|send (me )?(all )?(secrets|tokens|api keys))"
+    r"reveal (the )?(system prompt|api key|secret|token|signing secret)|"
+    r"print (the )?(system prompt|hidden prompt|notion token|signing secret)|"
+    r"exfiltrate|send (me )?(all )?(secrets|tokens|api keys)|"
+    r"(token|secret|api key|password|signing secret).{0,80}(slack|channel|#|notify|ping|drop)|"
+    r"(slack|notify|post|ping|drop).{0,80}(token|secret|api key|password|signing secret))"
 )
+_LEAD = re.compile(
+    r"(?i)\b(new lead|add (a )?lead|create (a )?contact|add (a )?contact|"
+    r"new inquiry|new prospect|add a prospect|inbound lead|form fill)\b"
+)
+_ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\ufeff\u2060"), None)
+
+
+def _normalize(prompt: str) -> str:
+    return unicodedata.normalize("NFKC", prompt.translate(_ZERO_WIDTH))
 
 
 def plan_calls(prompt: str) -> tuple[str, list[tuple[str, dict[str, Any]]], str]:
-    text = prompt.strip()
-    workspace_id = ""
-    found_ws = _WORKSPACE.search(text)
-    if found_ws:
-        workspace_id = found_ws.group(1)
+    raw = prompt.strip()
+    text = _normalize(raw)
+    workspace_id = _workspace(text)
 
     def with_ws(arguments: dict[str, Any]) -> dict[str, Any]:
         if workspace_id:
@@ -58,8 +68,8 @@ def plan_calls(prompt: str) -> tuple[str, list[tuple[str, dict[str, Any]]], str]
             "confirm": _confirm(text),
         }))], ""
 
-    lead_language = bool(re.search(r"(?i)\b(new lead|add (a )?lead|create (a )?contact|add (a )?contact)\b", text))
-    if re.search(r"(?i)\bslack\b|\bnotify\b|ping the channel", text) and not lead_language:
+    lead_language = bool(_LEAD.search(text))
+    if re.search(r"(?i)\bslack\b|\bnotify\b|\bping\b|drop a message|post to #", text) and not lead_language:
         channel = _CHANNEL.search(text)
         saying = _quoted_or_after(text, r"(?i)saying\s+") or _quoted_or_after(text, r"(?i)message:\s*")
         return "slack", [("slack_notify", with_ws({
@@ -69,9 +79,7 @@ def plan_calls(prompt: str) -> tuple[str, list[tuple[str, dict[str, Any]]], str]
         }))], ""
 
     emails = _EMAIL.findall(text)
-    if emails and re.search(r"(?i)\b(new lead|add (a )?lead|create (a )?contact|add (a )?contact)\b", text) and not re.search(
-        r"(?i)\b(find|search|look up|who is)\b", text
-    ):
+    if emails and _LEAD.search(text) and not re.search(r"(?i)\b(find|search|look up|who is)\b", text):
         lead_email = emails[0]
         assignee = emails[1] if len(emails) > 1 else ""
         name = _name(text) or "New lead"
@@ -103,8 +111,18 @@ def plan_calls(prompt: str) -> tuple[str, list[tuple[str, dict[str, Any]]], str]
             })))
         return "lead", steps, ""
 
+    if re.search(r"(?i)\b(add|create) a deal\b", text):
+        amount = re.search(r"\b(\d+) cents\b", text)
+        stage = re.search(r"(?i)\bstage\s+(lead|qualified|proposal|negotiation|won|lost)\b", text)
+        return "deal_write", [("crm_upsert_deal", with_ws({
+            "deal_name": _quoted(text) or "New deal",
+            "amount_cents": int(amount.group(1)) if amount else 0,
+            "stage": stage.group(1).lower() if stage else "",
+            "confirm": _confirm(text),
+        }))], ""
+
     task_id = _TASK.search(text)
-    if task_id and re.search(r"(?i)\b(update|mark|set)\b", text):
+    if task_id and re.search(r"(?i)\b(update|mark|set|move)\b", text):
         status = _status(text)
         return "task_update", [("projects_update_task", with_ws({
             "task_id": task_id.group(0),
@@ -121,20 +139,24 @@ def plan_calls(prompt: str) -> tuple[str, list[tuple[str, dict[str, Any]]], str]
             "confirm": _confirm(text),
         }))], ""
 
-    if re.search(r"(?i)who can i assign|list members|assignees", text):
+    if re.search(r"(?i)who can i assign|list members|assignees|who is on the account", text):
         return "members", [("projects_list_members", with_ws({}))], ""
 
-    if re.search(r"(?i)\b(open tasks|list tasks|task list|what(?:'s| is) open)\b", text):
+    if re.search(r"(?i)\b(open tasks|list tasks|task list|what(?:'s| is) open|on the board|open work)\b", text):
         arguments: dict[str, Any] = {}
         if re.search(r"(?i)\bopen\b", text):
             arguments["status"] = "open"
         return "tasks", [("projects_list_tasks", with_ws(arguments))], ""
 
-    if re.search(r"(?i)\b(docs|documentation|according to|cite|policy|brand voice|what does our|from our notes)\b", text):
-        return "docs", [("docs_search", with_ws({"query": text, "limit": 3}))], "docs_fetch"
+    if re.search(
+        r"(?i)\b(docs|documentation|according to|cite|policy|brand voice|what does our|from our notes|knowledge base|what are we allowed)\b",
+        text,
+    ):
+        return "docs", [("docs_search", with_ws({"query": raw, "limit": 3}))], "docs_fetch"
 
-    if re.search(r"(?i)\b(weekly|ads report|full report|account summary)\b", text) and re.search(
-        r"(?i)\b(ads|report|performance|spend|campaign)\b", text
+    if re.search(
+        r"(?i)\b(weekly|ads report|full report|account summary|readout|roll up|rollup|performance report)\b",
+        text,
     ):
         start, end = _dates(text)
         platform = _platform(text)
@@ -274,7 +296,7 @@ def _reply(kind: str, steps: list[dict[str, Any]]) -> str:
             return "No deals matched in this workspace."
         listed = ", ".join(f"{row['name']} (${row['amount_cents'] / 100:.2f}, {row['stage']})" for row in rows)
         return f"Deals: {listed}."
-    if kind in {"lead", "note", "task_create", "task_update", "slack"}:
+    if kind in {"lead", "note", "task_create", "task_update", "slack", "deal_write"}:
         if steps[0]["result"].get("dry_run"):
             return "Dry run only. Nothing was written. Pass confirm, or say 'confirm', to apply the preview shown in the tool result."
         return "The confirmed write finished. Details are in the tool result."
@@ -292,8 +314,25 @@ def _reply(kind: str, steps: list[dict[str, Any]]) -> str:
     return "The tool call finished. See the result."
 
 
+def _workspace(text: str) -> str:
+    found = _WORKSPACE.search(text)
+    if found:
+        return found.group(1)
+    loose = re.search(r"(?i)\bworkspace\s+([a-z0-9-]+)", text)
+    if loose:
+        return loose.group(1)
+    for slug in ("brightline-dental", "halden-bikes", "sable-rye"):
+        if re.search(rf"\b{slug}\b", text):
+            return slug
+    return ""
+
+
 def _confirm(text: str) -> bool:
-    return bool(re.search(r"(?i)\bconfirm\b|\bgo ahead\b", text))
+    if re.search(r"(?i)\b(skip|without|no|don't|do not)\s+confirm\b", text):
+        return False
+    if re.search(r"(?i)\b(no preview|skip the preview|just save it)\b", text):
+        return False
+    return bool(re.search(r"(?i)\bconfirm\b|\bgo ahead\b|\bapply the (write|change|preview)\b", text))
 
 
 def _platform(text: str) -> str:
@@ -322,12 +361,20 @@ def _dates(text: str) -> tuple[str, str]:
 
 def _query(text: str) -> str:
     text = _WORKSPACE.sub(" ", text)
-    quoted = _quoted(text)
-    if quoted:
-        return quoted
-    named = re.search(r"\b(?:named|who is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})", text)
+    text = re.sub(r"\b(halden-bikes|sable-rye|brightline-dental)\b", " ", text)
+    named = re.search(r"\b(?:[Nn]amed|[Ww]ho is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})", text)
     if named:
         return named.group(1)
+    if not re.search(r"(?i)\btask\b", text):
+        quoted = _quoted(text)
+        if quoted:
+            return quoted
+    for_match = re.search(
+        r"(?i)\bfor\s+(?:the\s+|a\s+|an\s+)?(.+?)(?:\s+in\s+workspace\b|\s+workspace_id\b|$)",
+        text,
+    )
+    if for_match and re.search(r"(?i)\b(deals?|contacts?)\b", text):
+        return for_match.group(1).strip(" .")
     words = re.sub(r"(?i)\b(find|search|look up|show|list|contacts?|deals?|the|a|an|for|in|me)\b", " ", text)
     cleaned = " ".join(words.split())
     return cleaned or text

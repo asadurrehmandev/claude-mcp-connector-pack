@@ -434,6 +434,12 @@ def _register_http(server: SwitchboardServer, runtime: Any) -> None:
     async def oauth_metadata(_: Request) -> Response:
         return JSONResponse(runtime.oauth.authorization_server_metadata())
 
+    @server.custom_route("/.well-known/jwks.json", methods=["GET"])
+    async def jwks_document(_: Request) -> Response:
+        from switchboard.auth import jwks
+
+        return JSONResponse(jwks(runtime.settings))
+
     @server.custom_route("/oauth/authorize", methods=["GET"])
     async def authorize(request: Request) -> Response:
         try:

@@ -1,6 +1,6 @@
 "use client";
 
-import { AuditTable, Problem } from "@/components/records";
+import { AuditTable, Empty, Loading, Problem } from "@/components/records";
 import { useWorkspace } from "@/components/workspace";
 import { api, type AuditRow } from "@/lib/api";
 import { dollars } from "@/lib/utils";
@@ -23,7 +23,7 @@ export default function OverviewPage() {
       .catch((reason: Error) => setAuditError(reason.message));
   }, [current]);
 
-  if (loading) return <p className="text-muted">Loading the console.</p>;
+  if (loading) return <Loading>Loading the console.</Loading>;
   if (error) return <Problem message={error} />;
   if (!current || !meta) return <Problem message="No workspace was returned." />;
 
@@ -39,6 +39,13 @@ export default function OverviewPage() {
       </section>
       <section>
         <h2 className="text-lg text-ink">Connectors</h2>
+        {meta.connectors.length === 0 ? (
+          <Empty title="No connectors are configured">
+            The server returned an empty connector list. Check the API process and reload this page.
+          </Empty>
+        ) : null}
+        {meta.connectors.length > 0 ? (
+        <>
         <ul className="mt-4 divide-y divide-rule border-y border-rule sm:hidden">
           {meta.connectors.map((row) => (
             <li key={row.id} className="grid gap-1 py-3">
@@ -68,6 +75,8 @@ export default function OverviewPage() {
             </tbody>
           </table>
         </div>
+        </>
+        ) : null}
       </section>
       <section>
         <div className="flex items-baseline justify-between gap-4">
@@ -78,9 +87,9 @@ export default function OverviewPage() {
         </div>
         {auditError ? <p className="mt-3 text-sm text-accent">{auditError}</p> : null}
         {records && records.length === 0 ? (
-          <p className="mt-3 max-w-[60ch] text-sm leading-6 text-muted">
-            No calls for this workspace yet. The log fills when a tool runs from the playground or an MCP client.
-          </p>
+          <Empty title="No calls for this workspace yet" href="/playground" action="Open the playground">
+            The log fills when a tool runs from the playground or from an MCP client signed in as {current.name}.
+          </Empty>
         ) : null}
         {records && records.length > 0 ? <AuditTable rows={records} /> : null}
       </section>
