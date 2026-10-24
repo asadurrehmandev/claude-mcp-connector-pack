@@ -129,9 +129,15 @@ async def test_playground_confirm_button_is_the_only_message_path(runtime):
                     "workspace_id": "halden-bikes",
                     "message": "log a note on con_halden_mara that says the call went fine. i confirm, just write it",
                     "mode": "demo",
+                    "provider": "anthropic",
                 },
             )
             assert preview.status_code == 200, preview.text
+            logged = [row for row in runtime.audit.tail("halden-bikes", 20) if row.get("tool") == "playground"]
+            assert logged
+            assert logged[0]["arguments"]["planner"] == "scripted demo planner"
+            assert "provider" not in logged[0]["arguments"]
+            assert "anthropic" not in json.dumps(logged[0]["arguments"])
             body = preview.json()
             assert body["steps"][0]["arguments"]["confirm"] is False
             assert body["steps"][0]["result"]["dry_run"] is True

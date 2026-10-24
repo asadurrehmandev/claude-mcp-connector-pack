@@ -106,6 +106,10 @@ Gateway order for every tool call: resolve the principal, reject an unknown tool
 
 Tool results use the envelope `{untrusted, notice, dry_run, data}`. The notice tells the model the payload is data.
 
+## Live demo
+
+The hosted console is [https://switchboard-demo-tunnel.asadurrehman-gd.workers.dev](https://switchboard-demo-tunnel.asadurrehman-gd.workers.dev). Sign in with `switchboard-demo` / `switchboard-demo`.
+
 ## Run it
 
 Python 3.11 or newer. From the repository root:
