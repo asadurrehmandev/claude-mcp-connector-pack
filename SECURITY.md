@@ -45,7 +45,7 @@ One token carries one `tenant_id`. Passing `workspace_id` for a different client
 
 Live connectors refuse to run when the tenant map is missing (`not_configured`) rather than calling a default account. HubSpot queries include the `switchboard_tenant` property. Google, Meta, Notion, ClickUp, and Slack use the workspace's mapped customer, account, page ids, list, or channel allowlist.
 
-A workspace that is not one of the three demo tenants is read-only until its policy enables a write tool. Enabling the tool still requires `confirm: true`.
+A workspace that is not one of the three demo tenants is read-only until its policy enables a write tool. Enabling the tool still requires the boolean `true` on the tool call. The string `"true"` is rejected. Words in a message do not set that flag. The check is `literal_confirm` in `src/switchboard/gateway.py`.
 
 ## Writes
 

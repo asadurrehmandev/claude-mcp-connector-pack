@@ -99,5 +99,7 @@ export const api = {
     api_key?: string;
     model?: string;
   }) => request<PlaygroundResponse>("/playground", { method: "POST", body: JSON.stringify(body) }),
+  confirmPreview: (body: { workspace_id: string; steps: { tool: string; arguments: Record<string, unknown> }[] }) =>
+    request<PlaygroundResponse>("/playground/confirm", { method: "POST", body: JSON.stringify(body) }),
   setup: () => request<{ snippets: Record<string, string> }>("/setup"),
 };

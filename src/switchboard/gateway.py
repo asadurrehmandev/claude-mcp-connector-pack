@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any
+from typing import Annotated, Any
+
+from pydantic import BeforeValidator
 
 from switchboard.audit import AuditLog
 from switchboard.constants import RESULT_NOTICE
@@ -15,6 +17,32 @@ from switchboard.ratelimit import RateLimiter
 from switchboard.settings import Settings
 from switchboard.store import Store
 from switchboard.tools import CallCtx, Registry
+
+
+def literal_confirm(value: Any) -> bool:
+    """Authorize a write only for the boolean true.
+
+    Missing and false stay a dry-run. The string "true", the number 1, and any
+    other value are rejected. Prompt text never reaches this function.
+    """
+    if value is False or value is None:
+        return False
+    if value is True:
+        return True
+    raise SwitchboardError(
+        "validation",
+        'confirm must be the boolean true. The string "true" and other values cannot authorize a write.',
+    )
+
+
+def _strict_confirm(value: Any) -> bool:
+    """MCP schema hook. Rejects a confirm value before a bool coercion can accept it."""
+    if value is True or value is False:
+        return value
+    raise ValueError('confirm must be a boolean, not the string "true" or another type')
+
+
+StrictConfirm = Annotated[bool, BeforeValidator(_strict_confirm)]
 
 
 class Gateway:
@@ -85,7 +113,10 @@ class Gateway:
                     {"authenticated_workspace": tenant_id},
                 )
             args.pop("workspace_id", None)
-            confirm = bool(args.get("confirm", False))
+            confirm = False
+            if spec.write:
+                confirm = literal_confirm(args.get("confirm", False))
+                args["confirm"] = confirm
             ctx = CallCtx(
                 tenant_id=tenant_id,
                 actor=actor,

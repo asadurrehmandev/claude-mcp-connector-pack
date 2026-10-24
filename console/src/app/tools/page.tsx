@@ -47,8 +47,8 @@ export default function ToolsPage() {
       <h1 className="font-serif text-3xl tracking-[-0.03em]">Tools for {current.name}</h1>
       <p className="mt-3 max-w-[68ch] text-sm leading-6 text-muted">
         A workspace with no saved policy is read-only: write tools stay off. These demo workspaces ship with tools
-        enabled so the sample flows can run. Enabling a write tool does not skip the confirm flag. A call with confirm
-        false returns a dry-run and changes nothing.
+        enabled so the sample flows can run. Enabling a write tool does not skip the confirm flag. A call writes only
+        when confirm is the boolean true. The playground sets that from the Confirm button, not from the message.
       </p>
       {pageError ? <p className="mt-4 text-sm text-accent">{pageError}</p> : null}
       {!tools && !pageError ? <Loading>Loading the tool list.</Loading> : null}

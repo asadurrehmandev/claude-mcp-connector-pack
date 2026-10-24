@@ -54,6 +54,40 @@ export default function PlaygroundPage() {
   const [pending, setPending] = useState(false);
   const [pageError, setPageError] = useState("");
 
+  function dryRuns(steps: Step[] | undefined): Step[] {
+    return (steps || []).filter((step) => {
+      const result = step.result as { dry_run?: boolean } | null;
+      return Boolean(result && typeof result === "object" && result.dry_run && !step.is_error);
+    });
+  }
+
+  async function confirmPreview(steps: Step[]) {
+    if (!current || steps.length === 0) return;
+    setPending(true);
+    setPageError("");
+    try {
+      const result = await api.confirmPreview({
+        workspace_id: current.id,
+        steps: steps.map((step) => ({ tool: step.tool, arguments: step.arguments })),
+      });
+      setTurns((items) => [
+        ...items,
+        { id: crypto.randomUUID(), role: "user", text: "Confirm" },
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: result.reply,
+          steps: result.steps,
+          label: result.mode_label,
+        },
+      ]);
+    } catch (reason) {
+      setPageError(reason instanceof Error ? reason.message : "The confirm failed.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   async function send(text: string) {
     if (!current || !text.trim()) return;
     const userTurn: Turn = { id: crypto.randomUUID(), role: "user", text: text.trim() };
@@ -178,7 +212,7 @@ export default function PlaygroundPage() {
         <div className="mt-8 grid gap-5">
           {turns.length === 0 ? (
             <Empty title="No turns in this tab yet">
-              Pick a suggestion or write a request, then Run. The planner sends it to {current.name}. A write stays a dry-run until the message asks to confirm.
+              Pick a suggestion or write a request, then Run. The planner sends it to {current.name}. A write stays a dry-run until you press Confirm. The message cannot set that.
             </Empty>
           ) : null}
           {turns.map((turn) => (
@@ -192,6 +226,16 @@ export default function PlaygroundPage() {
       </section>
       <aside className="lg:border-l lg:border-rule lg:pl-6">
         <h2 className="text-lg">Tool calls</h2>
+        {dryRuns(latest?.steps).length > 0 ? (
+          <div className="mt-4 grid gap-2">
+            <Button type="button" disabled={pending} onClick={() => void confirmPreview(dryRuns(latest?.steps))}>
+              {pending ? "Running" : "Confirm"}
+            </Button>
+            <p className="text-xs leading-5 text-muted">
+              Confirm applies the dry-run preview. It sends the boolean true. Words in the message do not.
+            </p>
+          </div>
+        ) : null}
         {!latest?.steps?.length ? (
           <Empty title="No tool call to inspect">
             Arguments, the result envelope, and the duration show up here after a turn that calls a tool. A refusal stays in the transcript and leaves this pane empty.

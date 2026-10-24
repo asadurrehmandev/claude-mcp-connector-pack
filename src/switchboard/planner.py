@@ -116,6 +116,9 @@ def _normalize(prompt: str) -> str:
         ("yesteday", "yesterday"),
         ("lastweek", "last week"),
         ("lookup", "look up"),
+        # Platform shorthand is the same lexicon as facebook / instagram.
+        ("fb", "facebook"),
+        ("ig", "instagram"),
     ):
         folded = re.sub(rf"(?i)\b{src}\b", dst, folded)
     return folded
@@ -476,7 +479,11 @@ def _reply(kind: str, steps: list[dict[str, Any]]) -> str:
         return f"{row['name']} ({row['status']}, {row['assignee_email']})."
     if kind in {"lead", "note", "task_create", "task_update", "slack", "deal_write"}:
         if steps[0]["result"].get("dry_run"):
-            return "Dry run only. Nothing was written. Pass confirm, or say 'confirm', to apply the preview shown in the tool result."
+            return (
+                "Dry run only. Nothing was written. "
+                "The message cannot authorize a write. Press Confirm on the preview, "
+                "or pass the boolean true as the tool's confirm argument."
+            )
         return "The confirmed write finished. Details are in the tool result."
     if kind == "tasks":
         rows = steps[0]["result"]["data"]["tasks"]
@@ -505,25 +512,14 @@ def _workspace(text: str) -> str:
     return ""
 
 
-def _confirm(text: str) -> bool:
-    if re.search(
-        r"(?i)("
-        r"\b(no|not|without|skip|don't|dont|do not)\b.{0,40}\bconfirm\b|"
-        r"\b(don't|dont|do not)\s+(write|save|send|apply|ask)\b|"
-        r"\b(just save it|no preview|skip the preview|skip the dry run|"
-        r"hold the write|preview only|dry-?run|show me the dry run|"
-        r"did not say to apply|don't write yet|dont write yet)\b"
-        r")",
-        text,
-    ):
-        return False
-    return bool(
-        re.search(
-            r"(?i)\bconfirm\b|\bgo ahead\b|\bapply the (write|change|preview|send)\b|"
-            r"\byes,? apply\b|\bapply it\b|\bi confirm\b",
-            text,
-        )
-    )
+def _confirm(_text: str) -> bool:
+    """Prompt text cannot authorize a write.
+
+    The gateway accepts a write only when the tool call's confirm argument is
+    the boolean true. Words in the message, including "confirm" and "go ahead",
+    do not set that argument.
+    """
+    return False
 
 
 def _excluded(text: str, names: str) -> bool:
@@ -580,7 +576,41 @@ def _pair_dates(found: list[tuple[int, int, int | None]]) -> tuple[str, str] | N
     return None
 
 
+def _hyphen_range(text: str) -> tuple[str, str] | None:
+    """Same-month 'mar 2-8' and numeric '3/2-3/8', year optional.
+
+    A hyphen between two days is a range. It is not a single named day, and a
+    missing year does not fall through to last week.
+    """
+    named = re.search(
+        rf"(?i)\b{_MONTH}\s+(\d{{1,2}})(?:st|nd|rd|th)?\s*-\s*"
+        rf"(\d{{1,2}})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{{4}}))?\b",
+        text,
+    )
+    if named:
+        year = int(named.group(4)) if named.group(4) else DEMO_TODAY.year
+        month = _month_num(named.group(1))
+        return _iso_from(year, month, int(named.group(2))), _iso_from(year, month, int(named.group(3)))
+    numeric = re.search(
+        r"\b(\d{1,2})/(\d{1,2})(?:/(\d{4}))?\s*-\s*(\d{1,2})/(\d{1,2})(?:/(\d{4}))?\b",
+        text,
+    )
+    if not numeric:
+        return None
+    start_year = int(numeric.group(3)) if numeric.group(3) else None
+    end_year = int(numeric.group(6)) if numeric.group(6) else None
+    year_start = start_year or end_year or DEMO_TODAY.year
+    year_end = end_year or start_year or DEMO_TODAY.year
+    return (
+        _iso_from(year_start, int(numeric.group(1)), int(numeric.group(2))),
+        _iso_from(year_end, int(numeric.group(4)), int(numeric.group(5))),
+    )
+
+
 def _explicit_dates(text: str) -> tuple[str, str] | None:
+    ranged = _hyphen_range(text)
+    if ranged:
+        return ranged
     iso = _ISO.findall(text)
     if len(iso) >= 2:
         return iso[0], iso[1]
@@ -662,11 +692,11 @@ def _query(text: str) -> str:
     if for_match and re.search(r"(?i)\b(deals?|contacts?)\b", text):
         return for_match.group(1).strip(" .")
     words = re.sub(
-        r"(?i)\b(find|search|look up|show|list|contacts?|deals?|the|a|an|for|in|me|any|where|is|sitting|mentioning|do|we|have|him|her|crm|hubspot|named|pull|fetch|get|please|but|set)\b",
+        r"(?i)\b(find|search|look up|show|list|contacts?|deals?|the|a|an|for|in|me|any|where|is|sitting|mentioning|do|we|have|him|her|crm|hubspot|named|pull|fetch|get|please|but|set|asap|pls|plz|thx|thanks|rn|quick)\b",
         " ",
         text,
     )
-    cleaned = " ".join(words.split())
+    cleaned = " ".join(words.split()).strip(" ?.!,;:\"'")
     return cleaned or text
 
 
@@ -686,11 +716,12 @@ def _flipped_name(text: str) -> str:
         last, first = match.group(1), match.group(2)
         if first.lower() in stop or last.lower() in stop:
             continue
-        score = 0
-        if first[:1].isupper() and last[:1].isupper():
-            score += 2
-        if first.lower() in known or last.lower() in known:
-            score += 2
+        both_caps = first[:1].isupper() and last[:1].isupper()
+        both_known = first.lower() in known and last.lower() in known
+        # One known token is not a name. "look up, deshmukh" must not become a person.
+        if not both_caps and not both_known:
+            continue
+        score = (2 if both_caps else 0) + (2 if both_known else 0)
         if score > best_score:
             best_score = score
             best = f"{first.title()} {last.title()}"
@@ -770,15 +801,35 @@ def _name(text: str) -> str:
     return ""
 
 
+def _company_value(raw: str) -> str:
+    value = raw.strip(" .'\"")
+    if value.lower().startswith("is "):
+        value = value[3:].strip(" .'\"")
+    return value
+
+
 def _company(text: str) -> str:
-    match = re.search(
-        r"(?i)\b(?:at|company|from)\s+(.+?)(?:\.|,|\btask\b|\bassign\b|\bgive it\b|$)",
-        text,
+    """Prefer an affiliation (`at`) over a company field that is an instruction."""
+    patterns = (
+        ("at", r"(?i)\bat\s+(.+?)(?:\.|,|\btask\b|\bassign\b|\bgive it\b|$)"),
+        ("company", r"(?i)\bcompany(?:\s+is)?\s+(.+?)(?:\.|,|\btask\b|\bassign\b|\bgive it\b|$)"),
+        ("from", r"(?i)\bfrom\s+(.+?)(?:\.|,|\btask\b|\bassign\b|\bgive it\b|$)"),
     )
-    company = match.group(1).strip(" .'\"") if match else ""
-    if company.lower().startswith("is "):
-        company = company[3:].strip(" .'\"")
-    return company
+    found: list[tuple[str, str]] = []
+    for kind, pattern in patterns:
+        match = re.search(pattern, text)
+        if not match:
+            continue
+        value = _company_value(match.group(1))
+        if not value or value.lower() in {"our notes", "the knowledge base", "our docs", "the docs"}:
+            continue
+        found.append((kind, value))
+    usable = [(kind, value) for kind, value in found if not _HIJACK.search(value) and not _EXFIL.search(value)]
+    for kind in ("at", "company", "from"):
+        for item_kind, value in usable:
+            if item_kind == kind:
+                return value
+    return ""
 
 
 def _task_title(text: str) -> str:

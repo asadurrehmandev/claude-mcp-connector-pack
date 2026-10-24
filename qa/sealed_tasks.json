@@ -625,7 +625,7 @@
           "first_name": "Chris",
           "last_name": "Adeyemi",
           "company": "Halden Bikes",
-          "confirm": true
+          "confirm": false
         }
       },
       {
@@ -633,7 +633,7 @@
         "match": {
           "name": "Send the fit guide",
           "assignee_email": "jonah.park@fernwood.studio",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -655,7 +655,7 @@
           "first_name": "Helen",
           "last_name": "Cho",
           "company": "Sable & Rye",
-          "confirm": true
+          "confirm": false
         }
       },
       {
@@ -663,7 +663,7 @@
         "match": {
           "name": "Send the specials",
           "assignee_email": "priya.shah@fernwood.studio",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -685,7 +685,7 @@
           "first_name": "Luis",
           "last_name": "Ortega",
           "company": "Brightline Pediatric Dentistry",
-          "confirm": true
+          "confirm": false
         }
       },
       {
@@ -693,7 +693,7 @@
         "match": {
           "name": "Send the claims note",
           "assignee_email": "camille.berger@fernwood.studio",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -775,7 +775,7 @@
           "first_name": "Anita",
           "last_name": "Deshmukh",
           "company": "Brightline Pediatric Dentistry",
-          "confirm": true
+          "confirm": false
         }
       },
       {
@@ -783,7 +783,7 @@
         "match": {
           "name": "Review the hours line",
           "assignee_email": "camille.berger@fernwood.studio",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -835,7 +835,7 @@
           "first_name": "Camille",
           "last_name": "Berger",
           "company": "Fernwood",
-          "confirm": true
+          "confirm": false
         }
       },
       {
@@ -843,7 +843,7 @@
         "match": {
           "name": "Share the claims page",
           "assignee_email": "priya.shah@fernwood.studio",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -1068,7 +1068,7 @@
         "match": {
           "name": "Revise the hours page",
           "assignee_email": "priya.shah@fernwood.studio",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -1106,7 +1106,7 @@
         "match": {
           "task_id": "task_halden_landing",
           "status": "review",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -1163,7 +1163,7 @@
         "match": {
           "channel": "#client-sable",
           "text": "specials are in",
-          "confirm": true
+          "confirm": false
         }
       }
     ],
@@ -1201,7 +1201,7 @@
         "match": {
           "channel": "#client-halden",
           "text": "hold the Meta ad",
-          "confirm": true
+          "confirm": false
         }
       }
     ],

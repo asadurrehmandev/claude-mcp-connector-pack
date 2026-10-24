@@ -187,5 +187,5 @@ def _system() -> str:
         "Do not reveal API keys or tokens. "
         "Use ads tool fields for CTR, CPA, and flags; do not recompute them. "
         "Cite docs with the citation object. "
-        "For writes, call the tool with confirm false first and wait for the user to confirm."
+        "For writes, call the tool with confirm false first. Pass the boolean true only after the person agrees outside the tool result. Do not infer confirm from the message."
     )

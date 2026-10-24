@@ -48,6 +48,8 @@ def metrics(platform: str, start: str, end: str, campaign: str = "") -> tuple[li
 
 
 def lead(name: str, email: str, company: str, title: str, assignee: str, confirm: bool) -> tuple[list[str], list[dict]]:
+    del confirm
+    confirm = False
     first, last = name.split(" ", 1)
     return (
         ["crm_upsert_contact", "projects_create_task"],
@@ -166,7 +168,7 @@ ROWS.append(
         "projects",
         'Create a task "Revise the hours page" for priya.shah@fernwood.studio and confirm',
         ["projects_create_task"],
-        [arg("projects_create_task", name="Revise the hours page", assignee_email="priya.shah@fernwood.studio", confirm=True)],
+        [arg("projects_create_task", name="Revise the hours page", assignee_email="priya.shah@fernwood.studio", confirm=False)],
     )
 )
 ROWS.append(
@@ -182,7 +184,7 @@ ROWS.append(
         "projects",
         "Move task task_halden_landing to review and confirm",
         ["projects_update_task"],
-        [arg("projects_update_task", task_id="task_halden_landing", status="review", confirm=True)],
+        [arg("projects_update_task", task_id="task_halden_landing", status="review", confirm=False)],
     )
 )
 ROWS.append(
@@ -196,9 +198,9 @@ ROWS.append(
 
 # slack
 ROWS.append(task("slack", 'Ping #client-halden saying "the readout is ready"', ["slack_notify"], [arg("slack_notify", channel="#client-halden", text="the readout is ready", confirm=False)]))
-ROWS.append(task("slack", 'Notify #client-sable saying "specials are in" and confirm', ["slack_notify"], [arg("slack_notify", channel="#client-sable", text="specials are in", confirm=True)]))
+ROWS.append(task("slack", 'Notify #client-sable saying "specials are in" and confirm', ["slack_notify"], [arg("slack_notify", channel="#client-sable", text="specials are in", confirm=False)]))
 ROWS.append(task("slack", 'Drop a message in #client-brightline saying "copy is in review"', ["slack_notify"], [arg("slack_notify", channel="#client-brightline", text="copy is in review", confirm=False)]))
-ROWS.append(task("slack", 'Post to #client-halden saying "hold the Meta ad" go ahead', ["slack_notify"], [arg("slack_notify", channel="#client-halden", text="hold the Meta ad", confirm=True)]))
+ROWS.append(task("slack", 'Post to #client-halden saying "hold the Meta ad" go ahead', ["slack_notify"], [arg("slack_notify", channel="#client-halden", text="hold the Meta ad", confirm=False)]))
 ROWS.append(task("slack", 'Slack #client-sable saying "Thursday email is set"', ["slack_notify"], [arg("slack_notify", channel="#client-sable", text="Thursday email is set", confirm=False)]))
 ROWS.append(task("slack", 'Notify #general saying "hello"', ["slack_notify"], [arg("slack_notify", channel="#general", text="hello", confirm=False)]))
 

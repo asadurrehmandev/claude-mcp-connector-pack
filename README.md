@@ -209,7 +209,7 @@ Bring-your-own-key sends the message to Anthropic (`claude-sonnet-4-5` unless yo
 ## Security model
 
 - Read-only by default. A workspace that is not one of the three demo tenants has write tools off until someone enables them. Enabling a tool does not skip `confirm`.
-- Writes take `confirm: true` and otherwise return a dry-run preview. `projects_update_task` is marked destructive.
+- Writes run only when the tool call's `confirm` argument is the boolean `true`. A missing value or `false` returns a dry-run preview. The string `"true"`, the number `1`, and any other type are rejected with `validation` and do not write. Prompt text cannot set the flag. `projects_update_task` is marked destructive. The guard is `literal_confirm` in `src/switchboard/gateway.py`, called from `Gateway.invoke` before every write handler. MCP schemas use `StrictConfirm` so a string cannot be coerced into `true`. Handlers also dry-run unless `confirm is True`. In the playground the flag is set only by the Confirm button (`POST /console/playground/confirm`). The message endpoint never sets it.
 - One tenant per token. `workspace_id`, when sent, must match the token. Store reads and writes are filtered by tenant. Cross-tenant ids return `not_found`.
 - Scopes are `crm.read`, `crm.write`, `ads.read`, `docs.read`, `projects.read`, `projects.write`, `slack.read`, `slack.write`. A missing scope is `scope_denied`.
 - Rate limit is a sliding window per tenant and tool (60 calls / 60 seconds unless configured). The error includes `retry_after_seconds`.
@@ -222,7 +222,7 @@ The seed plants instruction-shaped text in a CRM note, a Notion page (including 
 
 ## Tests
 
-Measured on this tree with `pytest` (Python 3.12): **204 passed**.
+Measured on this tree with `pytest` (Python 3.12): **250 passed**.
 
 | File | What it holds still |
 | --- | --- |
@@ -237,7 +237,8 @@ Measured on this tree with `pytest` (Python 3.12): **204 passed**.
 | `tests/test_ads_math.py` | Hand-calculated CTR, CPA, and flags, the tool path for `cmp_halden_exact`, and a cross-tenant `not_found`. |
 | `tests/test_live_and_protocol.py` | Google and Meta row parsers, HubSpot tenant filter, MCP client handshake, HTTP 401, OAuth token, authorized `initialize`. |
 | `tests/test_eval.py` | The original held-out file: 24/24 tool choices, 24/24 argument checks, 0 leaks, 0 unsafe writes. |
-| `tests/test_planner_contract.py` | Assignee addresses are not contact names, `inbound:` and `from` parse, `workspace_id is` reads the slug, a quoted secret in Slack is refused, a quoted hijack in a note stays data. |
+| `tests/test_planner_contract.py` | Assignee addresses are not contact names, `inbound:` and `from` parse, `workspace_id is` reads the slug, a quoted secret in Slack is refused, a quoted hijack in a note stays data, prompt text cannot set `confirm`, hyphen day spans are ranges, `fb` / `ig` use the same platform grammar. |
+| `tests/test_confirm_gate.py` | `literal_confirm` accepts only the boolean. Each write tool: missing confirm is a dry-run, the string `"true"` is rejected, boolean `true` writes. Prompt text and a planted result do not write. An MCP call with confirm `"true"` is an error. The playground message path stays a dry-run; the Confirm route sets the boolean. |
 
 `python3 -m switchboard conformance` reports 19 tools, 5 resource templates, 3 prompts, and a successful `crm_search_contacts` call.
 
@@ -252,7 +253,7 @@ Original held-out file, `qa/eval_results.json`:
 | Unsafe-write count | 0 of 9 cases |
 | Snapshot reverts of a handler that wrote during a dry run | 1 |
 
-Sealed dev set, `qa/sealed_eval_results.json`, hash `539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9`. That hash replaced `3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad` when the studio was renamed from its previous name to Fernwood. The prompts were not edited to fit the planner.
+Sealed dev set, `qa/sealed_eval_results.json`, hash `55ae62678fccefa08701b6e01be989a984153ea03069e832c11873cb0325fbb1`. The Fernwood rename moved the hash from `3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad` to `539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9` without editing prompts. This hash changed again because a phrase such as "i confirm" no longer counts as `confirm: true`. The prompts were not rewritten. The expected flag on those writes is now `false`.
 
 | Category | Tasks | Tools | Arguments | Safety check |
 | --- | ---: | ---: | ---: | --- |
@@ -278,8 +279,10 @@ That 88-task file is a dev set. Planner bugs were fixed against it after it had 
 | v1, hash `07f64c64e3d2f7092e053213f7a7992d09048ab440c702a46d485aaad5a2b378` | 102 | 49 | 39 | 4/10 | 8, including three writes and five wrong money windows |
 | v2, hash `bd5994723a6c29caf8399aec22b410bb093f82597084de0c2177881fdfca1106` | 106 | 95 | 91 | 7/10 | none |
 | v3, hash `6691d2a507da47eaf8d1f73e322d24fcf3bc8a4ae579b19527c47b38d66bc756` | 113 | 113 | 111 | 8/10 | none |
+| v4, hash `cc18cc1243592d35744596f403f14a562cfe475017facfa09e8fbda176be90ae` | 108 | 100 | 95 | 6/10 | 3 wrong money windows |
+| v5, hash `8c6d37e12146bee7663df35e368d15dd35cbf8ef17178dbc16a10f12f7942a76` | 100 | 99 | 99 | 8/10 | none |
 
-v3 still misses two arguments. `hubspot lookup, deshmukh anita` searches for `Deshmukh Up`, and a dry-run whose earlier company cue is a quoted instruction stores that quoted string. Neither writes, and neither reads another tenant. The publish bar used in that review was 8/10 with no P0.
+v3's two argument misses were fixed in the parser after that review: a comma after "look up" is not a last name, and an affiliation (`at Halden Bikes`) wins over a quoted instruction in a company field. v4 was a new set from three voices that v1–v3 did not use, hashed before the run. It failed the bar. `fb off` and `ig only` kept every platform, and `mar 2-8` was a single day. Those three are P0. The file was not edited after the hash, and it was not re-run after the parser change. v5 is a fresh file, hashed, then run once. Hyphen ranges and `fb` / `ig` matched. One task update that also said "in slack" was planned as an empty-channel Slack dry-run (`confirm` false, store unchanged). That is a P2. The publish bar is 8/10 with no P0. v5 meets it. v4 does not.
 
 Both the dev-set evals and the independent sets measure the scripted planner, not Claude.
 

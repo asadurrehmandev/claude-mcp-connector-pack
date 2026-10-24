@@ -33,6 +33,16 @@ class PlaygroundBody(BaseModel):
     model: str = ""
 
 
+class ConfirmStep(BaseModel):
+    tool: str
+    arguments: dict[str, Any] = Field(default_factory=dict)
+
+
+class ConfirmBody(BaseModel):
+    workspace_id: str
+    steps: list[ConfirmStep] = Field(min_length=1, max_length=8)
+
+
 def build_console(runtime) -> FastAPI:
     app = FastAPI(title="Switchboard console", docs_url=None, redoc_url=None)
     app.add_middleware(
@@ -166,6 +176,37 @@ def build_console(runtime) -> FastAPI:
             "kind": result["kind"],
             "reply": reply,
             "steps": steps,
+        }
+
+    @app.post("/playground/confirm")
+    async def confirm_preview(body: ConfirmBody, request: Request):
+        """Apply a dry-run preview. confirm is set here, never read from a message."""
+        principal = _principal(runtime, request, body.workspace_id)
+        executed = []
+        for step in body.steps:
+            spec = runtime.registry.tools.get(step.tool)
+            if spec is None or not spec.write:
+                raise SwitchboardError("validation", "Only a write tool from a dry-run preview can be confirmed.")
+            arguments = dict(step.arguments)
+            arguments.pop("confirm", None)
+            arguments["confirm"] = True
+            payload = await runtime.gateway.invoke(step.tool, arguments, principal=principal)
+            executed.append(
+                {
+                    "tool": step.tool,
+                    "arguments": arguments,
+                    "result": payload,
+                    "is_error": False,
+                    "error_code": None,
+                    "duration_ms": 0,
+                }
+            )
+        return {
+            "mode": "confirm",
+            "mode_label": "Confirm button. The boolean true was set by this action, not by the message.",
+            "kind": "confirm",
+            "reply": "The confirmed write finished. Details are in the tool result.",
+            "steps": executed,
         }
 
     @app.get("/setup")

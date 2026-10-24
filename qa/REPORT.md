@@ -32,10 +32,12 @@ The leak check concatenates the audit dump and the log lines for that case. The 
 88 prompts in `qa/sealed_tasks.json`. The file was generated once by `qa/freeze_sealed.py`, then hashed, then scored. The hash was checked before scoring (`qa/sealed_tasks.sha256`).
 
 ```
-539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9
+55ae62678fccefa08701b6e01be989a984153ea03069e832c11873cb0325fbb1
 ```
 
-The JSON was not edited after that hash. When a task failed, the planner changed. The task file did not.
+The Fernwood rename produced `539d4fc1bb6f52853222ae7e0f58e1646f2008fabf5a675c01655b9210f41df9` from `3bc84b0998a9a3ee707e4325c040108a2bbba27c8385dcd61d6fbb7dac80e2ad`. Prompts were not edited. The hash changed again when phrase-level "confirm" stopped authorizing a write. Expected `confirm` values on those tasks are now `false`. The prompt text was not rewritten to fit the parser.
+
+The JSON was not edited after the current hash. When a task failed, the planner changed. The task file did not.
 
 A task is tool-selection correct when the planned tool list equals `expect_tools`, including a trailing `docs_fetch` when the router marks a docs follow-up. Argument correctness requires that list and, for each planned step, the keys in `expect_args[].match`. The dynamic page id chosen at fetch time is not compared.
 
@@ -81,7 +83,7 @@ Two unit-test expectations were also wrong relative to the product and were corr
 
 ## Pytest
 
-`pytest` on this tree: **204 passed** (Python 3.12). Coverage includes, for every one of the 19 tools, a happy path, a scope denial, a missing or invalid argument, and a foreign workspace id; dry-run on each write; a rejected `confirm` flag on each read; tenant isolation across tools and prompts; injection variants; rate limit and audit redaction; ads edges (zero clicks, zero conversions, currency micros, date boundaries, zoned datetimes rejected) plus hypothesis properties; and bearer checks for missing, expired, not-yet-valid, and wrong-audience tokens, including RS256 and refresh rotation.
+`pytest` on this tree: **250 passed** (Python 3.12). Coverage includes, for every one of the 19 tools, a happy path, a scope denial, a missing or invalid argument, and a foreign workspace id; dry-run on each write; a rejected `confirm` flag on each read; tenant isolation across tools and prompts; injection variants; rate limit and audit redaction; ads edges (zero clicks, zero conversions, currency micros, date boundaries, zoned datetimes rejected) plus hypothesis properties; and bearer checks for missing, expired, not-yet-valid, and wrong-audience tokens, including RS256 and refresh rotation. `tests/test_confirm_gate.py` calls the write tools directly: no confirm does not write, the string `"true"` is rejected, and a planted result cannot schedule a follow-up write.
 
 `python3 -m switchboard conformance`, in-process official MCP client: 19 tools, 5 resource templates, 3 prompts, and `crm_search_contacts` `is_error` false. HTTP coverage: missing and bad bearers on `/mcp` return 401, JWKS and protected-resource metadata return 200, and `initialize` with an RS256 access token returns 200.
 
@@ -89,7 +91,8 @@ Two unit-test expectations were also wrong relative to the product and were corr
 
 - No hosted model was graded.
 - Live HubSpot, Google Ads, Meta, Notion, ClickUp, and Slack accounts were not called. Parsers were checked with a mock transport.
-- The planner can still miss a wording that is outside the task files. One checked miss: `hubspot lookup, deshmukh anita` searches for `Deshmukh Up`. The playground says when it does not recognize a request.
-- Independent review, with hashes and the 4/10, 7/10, and 8/10 scores: `qa/INDEPENDENT_QA_v1.md`. The 88-task file is a dev set.
+- The planner can still miss a wording that is outside the task files. A checked miss on v5: `mark task_sable_photo done … already confirmed in slack` is planned as `slack_notify` with an empty channel and `confirm` false. The store does not change. A one-word `channels?` is not a channel list. The playground says when it does not recognize a request.
+- Confirm lives in `literal_confirm` (`src/switchboard/gateway.py`), invoked from `Gateway.invoke` for every write. Only the boolean `true` writes. The playground sets that boolean from the Confirm button, not from the message.
+- Independent review: `qa/INDEPENDENT_QA_v1.md`. v1 is 4/10, v2 is 7/10, v3 is 8/10, v4 is 6/10 with three money-window P0s, v5 is 8/10 with no P0. The 88-task file is a dev set. v4 was not re-scored after the parser change.
 - The demo OAuth issuer auto-approves. Refresh tokens are in memory. That is not an end-user login.
-- A hosted model can still be persuaded by text inside `data`. The server keeps that text in the data envelope and will not apply a write unless `confirm` is true. `SECURITY.md` is the threat model.
+- A hosted model can still be persuaded by text inside `data`. The server keeps that text in the data envelope and will not apply a write unless `confirm` is the boolean `true`. `SECURITY.md` is the threat model.

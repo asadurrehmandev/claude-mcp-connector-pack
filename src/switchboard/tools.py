@@ -152,7 +152,7 @@ async def crm_upsert_contact(
         "company": company.strip(),
         "phone": phone.strip(),
     }
-    if not confirm:
+    if confirm is not True:
         return {"dry_run": True, "would_change": preview}
     saved = await ctx.crm.save_contact(
         ctx.tenant_id,
@@ -217,7 +217,7 @@ async def crm_upsert_deal(
         "stage": stage,
         "contact_id": contact_id,
     }
-    if not confirm:
+    if confirm is not True:
         return {"dry_run": True, "would_change": preview}
     saved = await ctx.crm.save_deal(ctx.tenant_id, preview)
     return {"dry_run": False, "deal": saved}
@@ -239,7 +239,7 @@ async def crm_log_note(ctx: CallCtx, contact_id: str = "", body: str = "", confi
     if contact is None:
         raise SwitchboardError("not_found", "No contact with that id is in this workspace.")
     preview = {"contact_id": contact_id, "body": text}
-    if not confirm:
+    if confirm is not True:
         return {"dry_run": True, "would_change": preview}
     note = await ctx.crm.log_note(ctx.tenant_id, contact_id, text)
     return {"dry_run": False, "note": note}
@@ -401,7 +401,7 @@ async def projects_create_task(
         "notes": notes.strip(),
         "status": "open",
     }
-    if not confirm:
+    if confirm is not True:
         return {"dry_run": True, "would_change": preview}
     task = await ctx.projects.create_task(ctx.tenant_id, preview)
     return {"dry_run": False, "task": task}
@@ -446,7 +446,7 @@ async def projects_update_task(
         "due_date": due_date or existing.get("due_date", ""),
         "notes": notes.strip() or existing.get("notes", ""),
     }
-    if not confirm:
+    if confirm is not True:
         return {"dry_run": True, "would_change": preview}
     updated = await ctx.projects.update_task(ctx.tenant_id, task_id, preview)
     return {"dry_run": False, "task": updated}
@@ -478,7 +478,7 @@ async def slack_notify(ctx: CallCtx, channel: str = "", text: str = "", confirm:
             {"allowed": sorted(allowed)},
         )
     preview = {"channel": channel, "text": text}
-    if not confirm:
+    if confirm is not True:
         return {"dry_run": True, "would_change": preview}
     sent = await ctx.slack.post(ctx.tenant_id, channel, text)
     return {"dry_run": False, "message": sent}
