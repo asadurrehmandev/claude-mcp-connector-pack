@@ -12,6 +12,12 @@ The sample tenant is **Fernwood Studio**, a fictional 14-person shop in Chicago 
 
 With no vendor keys, every connector uses a deterministic mock of that studio. A pasted model key in the playground is used for that request and is not written to disk or to the audit log.
 
+## Live demo
+
+**https://switchboard-demo-tunnel.asadurrehman-gd.workers.dev** (sign in with `switchboard-demo` / `switchboard-demo`; the credentials are printed on the login page).
+
+The hosted copy runs in Demo mode: the scripted planner, the Fernwood sample data, and mock connectors. The console and its API sit behind that demo login because the console API has no bearer check in demo mode. `/mcp` is public and still requires a bearer token (mint one with the OAuth curl on the Setup page, using the hosted URL). It is a shared demo: tool toggles, confirmed writes, and the audit log reset to the seed every 30 minutes, and the **Reset demo** button in the corner does it on demand.
+
 ## Connectors
 
 | Connector | Live client | What the tools do |
